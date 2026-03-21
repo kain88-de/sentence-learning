@@ -94,6 +94,50 @@ async function playRawAudio(rawAudio, token) {
   source.start();
 }
 
+async function decodeAudioBuffer(arrayBuffer) {
+  const context = await ensureAudioContext();
+  const copy = arrayBuffer.slice(0);
+  return context.decodeAudioData(copy);
+}
+
+async function playAudioBuffer(audioBuffer, token) {
+  const context = await ensureAudioContext();
+  if (token !== generationToken) {
+    return;
+  }
+
+  stopSource();
+
+  const source = context.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(context.destination);
+  activeSource = source;
+
+  source.onended = () => {
+    if (activeSource === source) {
+      activeSource.disconnect();
+      activeSource = null;
+    }
+    setState({
+      phase: "ready",
+      message: "Playback finished.",
+      progress: 1,
+      isPlaying: false,
+      error: "",
+    });
+  };
+
+  setState({
+    phase: "playing",
+    message: "Playing audio.",
+    progress: 1,
+    isPlaying: true,
+    error: "",
+  });
+
+  source.start();
+}
+
 function ensureWorker() {
   if (worker) {
     return worker;
@@ -196,6 +240,26 @@ export async function playGeneratedAudio(rawAudio) {
   generationToken += 1;
   const token = generationToken;
   await playRawAudio(rawAudio, token);
+}
+
+export async function playAudioUrl(url) {
+  generationToken += 1;
+  const token = generationToken;
+  setState({
+    phase: "loading",
+    message: "Loading prebuilt audio.",
+    progress: 1,
+    isPlaying: false,
+    error: "",
+  });
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load audio: ${response.status}`);
+  }
+
+  const audioBuffer = await decodeAudioBuffer(await response.arrayBuffer());
+  await playAudioBuffer(audioBuffer, token);
 }
 
 export async function speakText(text, { speed = 0.75 } = {}) {

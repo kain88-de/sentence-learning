@@ -1,8 +1,14 @@
-import { BUILTIN_SENTENCES, normalizeSentence, sortSentences } from "../shared/data.js";
+import {
+  BUILTIN_SENTENCES,
+  PREBUILT_AUDIO_SPEED,
+  normalizeSentence,
+  sortSentences,
+} from "../shared/data.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared/db.js";
 import {
   generateSpeech,
   getSnapshot,
+  playAudioUrl,
   playGeneratedAudio,
   preloadModel,
   stopPlayback,
@@ -70,7 +76,9 @@ function renderList() {
       const selected = sentence.id === selectedSentenceId;
       const isGenerating = sentence.id === activeSentenceId && modelState.phase === "generating";
       const cached = generatedAudio.get(sentence.id);
-      const hasPlayableAudio = Boolean(cached && cached.speed === currentSpeed);
+      const hasGeneratedAudio = Boolean(cached && cached.speed === currentSpeed);
+      const hasPrebuiltAudio =
+        sentence.source === "builtin" && sentence.audioSrc && currentSpeed === PREBUILT_AUDIO_SPEED;
       return `
         <article class="item ${selected ? "active" : ""}">
           <div class="item-top">
@@ -85,7 +93,8 @@ function renderList() {
             <button class="secondary" data-action="generate" data-id="${sentence.id}">
               ${isGenerating ? "Generating..." : "Generate now"}
             </button>
-            ${hasPlayableAudio ? '<span class="pill">Cached</span>' : ""}
+            ${hasGeneratedAudio ? '<span class="pill">Cached</span>' : ""}
+            ${hasPrebuiltAudio ? '<span class="pill">Prebuilt</span>' : ""}
             ${
               sentence.source === "user"
                 ? `<button class="delete" data-action="delete" data-id="${sentence.id}">Delete</button>`
@@ -101,7 +110,11 @@ function renderList() {
 function render() {
   const currentSpeed = Number(rateInput.value);
   const cached = generatedAudio.get(selectedSentenceId);
-  const hasPlayableAudio = Boolean(cached && cached.speed === currentSpeed);
+  const selectedSentence = allSentences().find((entry) => entry.id === selectedSentenceId);
+  const hasPlayableAudio = Boolean(
+    (cached && cached.speed === currentSpeed) ||
+      (selectedSentence?.audioSrc && currentSpeed === PREBUILT_AUDIO_SPEED),
+  );
 
   rateOutput.textContent = `${currentSpeed.toFixed(2)}x`;
   modelStatus.textContent = modelState.error
@@ -158,7 +171,8 @@ async function generateSelectedSentence() {
 
 async function playSelectedSentence() {
   const cached = generatedAudio.get(selectedSentenceId);
-  if (!cached || cached.speed !== Number(rateInput.value)) {
+  const sentence = allSentences().find((entry) => entry.id === selectedSentenceId);
+  if (!sentence) {
     return;
   }
 
@@ -166,7 +180,13 @@ async function playSelectedSentence() {
   render();
 
   try {
-    await playGeneratedAudio(cached);
+    if (cached && cached.speed === Number(rateInput.value)) {
+      await playGeneratedAudio(cached);
+    } else if (sentence.audioSrc && Number(rateInput.value) === PREBUILT_AUDIO_SPEED) {
+      await playAudioUrl(sentence.audioSrc);
+    } else {
+      return;
+    }
   } finally {
     playbackSentenceId = null;
     render();

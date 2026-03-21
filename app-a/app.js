@@ -1,8 +1,14 @@
-import { BUILTIN_SENTENCES, normalizeSentence, sortSentences } from "../shared/data.js";
+import {
+  BUILTIN_SENTENCES,
+  PREBUILT_AUDIO_SPEED,
+  normalizeSentence,
+  sortSentences,
+} from "../shared/data.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared/db.js";
 import {
   generateSpeech,
   getSnapshot,
+  playAudioUrl,
   playGeneratedAudio,
   preloadModel,
   stopPlayback,
@@ -73,14 +79,18 @@ function render() {
       const isPlaying = sentence.id === playbackSentenceId && modelState.phase === "playing";
       const description = sentence.theme ?? "Custom";
       const cached = generatedAudio.get(sentence.id);
-      const hasPlayableAudio = Boolean(cached && cached.speed === currentSpeed);
+      const hasGeneratedAudio = Boolean(cached && cached.speed === currentSpeed);
+      const hasPrebuiltAudio =
+        sentence.source === "builtin" && sentence.audioSrc && currentSpeed === PREBUILT_AUDIO_SPEED;
+      const hasPlayableAudio = hasGeneratedAudio || hasPrebuiltAudio;
 
       return `
         <article class="sentence-card">
           <div class="sentence-meta">
             <span class="badge">${sentence.source === "builtin" ? "Built-in" : "Your sentence"}</span>
             <span class="badge">${description}</span>
-            ${hasPlayableAudio ? '<span class="badge">Audio cached</span>' : ""}
+            ${hasGeneratedAudio ? '<span class="badge">Audio cached</span>' : ""}
+            ${hasPrebuiltAudio ? '<span class="badge">Prebuilt audio</span>' : ""}
             ${isGenerating ? '<span class="badge">Generating</span>' : ""}
             ${isPlaying ? '<span class="badge">Playing</span>' : ""}
           </div>
@@ -158,14 +168,16 @@ sentenceList.addEventListener("click", async (event) => {
 
   if (action === "play") {
     const cached = generatedAudio.get(sentence.id);
-    if (!cached || cached.speed !== Number(rateInput.value)) {
-      return;
-    }
-
     playbackSentenceId = sentence.id;
     render();
     try {
-      await playGeneratedAudio(cached);
+      if (cached && cached.speed === Number(rateInput.value)) {
+        await playGeneratedAudio(cached);
+      } else if (sentence.audioSrc && Number(rateInput.value) === PREBUILT_AUDIO_SPEED) {
+        await playAudioUrl(sentence.audioSrc);
+      } else {
+        return;
+      }
     } finally {
       playbackSentenceId = null;
       render();

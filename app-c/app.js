@@ -1,8 +1,14 @@
-import { BUILTIN_SENTENCES, normalizeSentence, sortSentences } from "../shared/data.js";
+import {
+  BUILTIN_SENTENCES,
+  PREBUILT_AUDIO_SPEED,
+  normalizeSentence,
+  sortSentences,
+} from "../shared/data.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared/db.js";
 import {
   generateSpeech,
   getSnapshot,
+  playAudioUrl,
   playGeneratedAudio,
   preloadModel,
   stopPlayback,
@@ -98,7 +104,11 @@ function renderList() {
 function render() {
   const currentSpeed = Number(rateInput.value);
   const cached = generatedAudio.get(selectedSentenceId);
-  const hasPlayableAudio = Boolean(cached && cached.speed === currentSpeed);
+  const selectedSentence = getSelectedSentence();
+  const hasPlayableAudio = Boolean(
+    (cached && cached.speed === currentSpeed) ||
+      (selectedSentence?.audioSrc && currentSpeed === PREBUILT_AUDIO_SPEED),
+  );
 
   rateOutput.textContent = `${currentSpeed.toFixed(2)}x`;
   modelStatus.textContent = modelState.error
@@ -157,14 +167,22 @@ function generateSelectedSentence() {
 
 function playSelectedSentence() {
   const cached = generatedAudio.get(selectedSentenceId);
-  if (!cached || cached.speed !== Number(rateInput.value)) {
+  const sentence = getSelectedSentence();
+  if (!sentence) {
     return;
   }
 
   playbackSentenceId = selectedSentenceId;
   render();
 
-  playGeneratedAudio(cached)
+  const playback =
+    cached && cached.speed === Number(rateInput.value)
+      ? playGeneratedAudio(cached)
+      : sentence.audioSrc && Number(rateInput.value) === PREBUILT_AUDIO_SPEED
+        ? playAudioUrl(sentence.audioSrc)
+        : Promise.resolve();
+
+  playback
     .catch(() => {})
     .finally(() => {
       playbackSentenceId = null;

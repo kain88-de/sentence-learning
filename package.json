@@ -7,6 +7,7 @@
     "format": "biome format --write app-a app-b app-c shared",
     "check:site": "node scripts/check-static-site.mjs",
     "check": "bun run lint && bun run check:site",
+    "build:audio": "bun run scripts/pregenerate-audio.mjs",
     "hooks:install": "PREK_HOME=/tmp/prek prek install",
     "hooks:run": "PREK_HOME=/tmp/prek prek run --all-files"
   },
