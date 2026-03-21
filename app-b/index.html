@@ -8,66 +8,81 @@
   </head>
   <body>
     <main class="deck">
-      <section class="player">
+      <header class="hero">
         <a class="back" href="../">All variations</a>
         <p class="eyebrow">Variation 2</p>
         <h1>Dictation Deck</h1>
-        <p class="lead">
-          A more focused layout for preparing the German model and repeating one sentence at a
-          time.
-        </p>
+        <p class="intro">A stripped-down studio view with one prompt at a time.</p>
+      </header>
 
-        <div class="playback">
-          <p class="label">Current sentence</p>
-          <blockquote id="current-text">Choose a sentence to start slow playback.</blockquote>
-          <div class="meter">
-            <span>Generation speed</span>
-            <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
-            <strong id="rate-output">0.75x</strong>
-          </div>
-          <div class="meter">
-            <span>Model status</span>
-            <div class="status-box">
-              <div class="status-head">
-                <strong>MMS German</strong>
-                <span id="model-spinner" class="spinner" hidden></span>
-              </div>
-              <p id="model-status">Model not loaded yet.</p>
-              <div class="progress-track" aria-hidden="true">
-                <span id="model-progress"></span>
-              </div>
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" data-tab="practice" type="button">Practice</button>
+        <button class="tab" data-tab="manage" type="button">Manage</button>
+      </nav>
+
+      <section class="panel practice-view" data-view="practice">
+        <div class="top-bar">
+          <div>
+            <p class="label">Model status</p>
+            <div class="status-line">
+              <span id="model-spinner" class="spinner" hidden></span>
+              <span id="model-status">Model not loaded yet.</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <span id="model-progress"></span>
             </div>
           </div>
-          <div class="hero-actions">
-            <button id="prepare-button" type="button">Prepare German model</button>
-            <button id="generate-current">Generate selected sentence</button>
-            <button class="secondary" id="play-current">Play generated audio</button>
-            <button class="secondary" id="stop-current">Stop</button>
+          <button id="prepare-button" type="button">Prepare model</button>
+        </div>
+
+        <div class="speed-row">
+          <label for="rate-input">Playback speed</label>
+          <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
+          <span id="rate-output">0.75x</span>
+        </div>
+
+        <div class="prompt-card">
+          <p class="label">Prompt</p>
+          <div id="prompt-state" class="prompt-state">Random sentence selected. Press play.</div>
+          <div class="actions">
+            <button id="random-button" type="button">Random sentence</button>
+            <button id="play-button" type="button">Play</button>
+            <button class="secondary" id="reveal-button" type="button">Reveal</button>
+            <button class="secondary" id="stop-button" type="button">Stop</button>
           </div>
+        </div>
+
+        <div id="reveal-card" class="reveal-card" hidden>
+          <p class="label">Revealed sentence</p>
+          <p id="revealed-text" class="revealed-text"></p>
+        </div>
+      </section>
+
+      <section class="panel manage-view" data-view="manage" hidden>
+        <div class="manage-head">
+          <div>
+            <h2>Manage Sentences</h2>
+            <p>Add or remove local custom prompts without cluttering practice mode.</p>
+          </div>
+          <p id="sentence-count" class="count">0 sentences</p>
         </div>
 
         <form id="sentence-form" class="composer">
           <label for="sentence-input">Add a custom sentence</label>
           <textarea
             id="sentence-input"
-            rows="4"
-            placeholder="Ich moechte diesen Satz mehrmals langsam hoeren."
+            rows="3"
+            placeholder="Ich hoere den Satz und schreibe ihn ohne auf den Bildschirm zu schauen."
           ></textarea>
-          <button type="submit">Store in browser</button>
+          <button type="submit">Save sentence</button>
         </form>
 
         <details class="debug">
           <summary>Debug</summary>
           <p id="debug-cache-size">Generated audio cache: 0 KB</p>
         </details>
-      </section>
 
-      <section class="queue">
-        <div class="queue-head">
-          <h2>Sentence Queue</h2>
-          <p>Built-in and user sentences appear together here with model-backed playback.</p>
-        </div>
-        <div id="sentence-list" class="queue-list" aria-live="polite"></div>
+        <div id="sentence-list" class="sentence-list" aria-live="polite"></div>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

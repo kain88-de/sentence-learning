@@ -10,62 +10,79 @@
     <main class="shell">
       <header class="hero">
         <a class="back" href="../">All variations</a>
-        <div>
-          <p class="eyebrow">Variation 1</p>
-          <h1>Reading Room</h1>
-          <p class="intro">
-            Browse German sentences, prepare the model, and generate slow audio directly in the
-            browser.
-          </p>
-        </div>
+        <p class="eyebrow">Variation 1</p>
+        <h1>Reading Room</h1>
+        <p class="intro">Practice first. Sentence management stays out of the way.</p>
       </header>
 
-      <section class="controls panel">
-        <div class="control">
-          <label for="rate-input">Generation speed</label>
-          <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
-          <span id="rate-output">0.75x</span>
-        </div>
-        <div class="control">
-          <label>Model</label>
-          <div class="status-box">
-            <div class="status-head">
-              <strong>MMS German</strong>
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" data-tab="practice" type="button">Practice</button>
+        <button class="tab" data-tab="manage" type="button">Manage</button>
+      </nav>
+
+      <section class="panel practice-view" data-view="practice">
+        <div class="status-bar">
+          <div>
+            <p class="label">Model status</p>
+            <div class="status-line">
               <span id="model-spinner" class="spinner" hidden></span>
+              <span id="model-status">Model not loaded yet.</span>
             </div>
-            <p id="model-status">Model not loaded yet.</p>
             <div class="progress-track" aria-hidden="true">
               <span id="model-progress"></span>
             </div>
           </div>
-          <button id="prepare-button" type="button">Prepare German model</button>
+          <button id="prepare-button" type="button">Prepare model</button>
+        </div>
+
+        <div class="speed-row">
+          <label for="rate-input">Playback speed</label>
+          <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
+          <span id="rate-output">0.75x</span>
+        </div>
+
+        <div class="practice-card">
+          <p class="label">Current prompt</p>
+          <div id="prompt-state" class="prompt-state">Random sentence selected. Press play.</div>
+          <div class="practice-actions">
+            <button id="random-button" type="button">Random sentence</button>
+            <button id="play-button" type="button">Play</button>
+            <button class="secondary" id="reveal-button" type="button">Reveal</button>
+            <button class="secondary" id="stop-button" type="button">Stop</button>
+          </div>
+          <div id="reveal-card" class="reveal-card" hidden>
+            <p class="label">Revealed sentence</p>
+            <p id="revealed-text" class="revealed-text"></p>
+          </div>
         </div>
       </section>
 
-      <section class="composer panel">
-        <div>
-          <h2>Add your own sentence</h2>
-          <p>
-            Saved locally with IndexedDB and shared across all three variations. Speech is generated
-            with the same German model everywhere.
-          </p>
+      <section class="panel manage-view" data-view="manage" hidden>
+        <div class="manage-head">
+          <div>
+            <h2>Manage Sentences</h2>
+            <p>Built-in sentences are fixed. Custom sentences are saved locally in IndexedDB.</p>
+          </div>
+          <p id="sentence-count" class="count">0 sentences</p>
         </div>
-        <form id="sentence-form">
+
+        <form id="sentence-form" class="composer">
+          <label for="sentence-input">Add a custom sentence</label>
           <textarea
             id="sentence-input"
             rows="3"
-            placeholder="Zum Beispiel: Ich schreibe das Diktat heute ganz langsam mit."
+            placeholder="Zum Beispiel: Heute hoere ich den Satz und schreibe ihn langsam auf."
           ></textarea>
           <button type="submit">Save sentence</button>
         </form>
+
+        <details class="debug">
+          <summary>Debug</summary>
+          <p id="debug-cache-size">Generated audio cache: 0 KB</p>
+        </details>
+
+        <div id="sentence-list" class="sentence-list" aria-live="polite"></div>
       </section>
-
-      <details class="debug panel">
-        <summary>Debug</summary>
-        <p id="debug-cache-size">Generated audio cache: 0 KB</p>
-      </details>
-
-      <section class="list" id="sentence-list" aria-live="polite"></section>
     </main>
     <script type="module" src="./app.js"></script>
   </body>
