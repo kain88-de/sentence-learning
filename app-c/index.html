@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Language Ledger</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="workspace">
+      <aside class="sidebar">
+        <a class="back" href="../">All variations</a>
+        <p class="eyebrow">Variation 3</p>
+        <h1>Language Ledger</h1>
+        <p class="copy">
+          A notebook-style view for reviewing sentence details before you listen.
+        </p>
+
+        <form id="sentence-form" class="add-form">
+          <label for="sentence-input">New custom sentence</label>
+          <textarea id="sentence-input" rows="5" placeholder="Heute schreibe ich jeden Satz langsam und genau auf."></textarea>
+          <button type="submit">Add to my ledger</button>
+        </form>
+
+        <div class="settings">
+          <label for="voice-select">Voice</label>
+          <select id="voice-select"></select>
+          <label for="rate-input">Slow playback speed</label>
+          <input id="rate-input" type="range" min="0.4" max="0.95" step="0.05" value="0.7" />
+          <p id="rate-output">0.70x</p>
+        </div>
+      </aside>
+
+      <section class="main-panel">
+        <div class="detail-card">
+          <div class="detail-meta">
+            <span id="detail-source" class="chip">Built-in</span>
+            <span id="detail-theme" class="chip">Warm-up</span>
+          </div>
+          <p class="detail-label">Selected sentence</p>
+          <div id="detail-text" class="detail-text"></div>
+          <div class="detail-actions">
+            <button id="play-button">Play slowly</button>
+            <button class="secondary" id="stop-button">Stop</button>
+            <button class="danger" id="delete-button" hidden>Delete custom sentence</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-head">
+            <h2>Sentence ledger</h2>
+            <p>Pick a sentence to inspect and play it in the panel above.</p>
+          </div>
+          <div id="sentence-list" class="table-list" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+  </html>

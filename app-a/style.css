@@ -1,0 +1,202 @@
+:root {
+  --bg: #f7f1e5;
+  --surface: rgba(255, 251, 244, 0.88);
+  --surface-strong: #fffdfa;
+  --ink: #1f2927;
+  --muted: #5d6a67;
+  --line: rgba(31, 41, 39, 0.12);
+  --accent: #b85b39;
+  --accent-dark: #8d4428;
+  --accent-soft: rgba(184, 91, 57, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, rgba(184, 91, 57, 0.12), transparent 22%),
+    linear-gradient(180deg, #fbf6ec 0%, #efe4d1 100%);
+}
+
+.shell {
+  width: min(1080px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 28px 0 56px;
+}
+
+.hero {
+  display: grid;
+  gap: 12px;
+  padding: 10px 0 20px;
+}
+
+.back {
+  width: fit-content;
+  color: var(--accent-dark);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 8vw, 4.6rem);
+  line-height: 0.95;
+}
+
+.intro {
+  max-width: 58ch;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 24px 46px rgba(34, 29, 23, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.controls,
+.composer {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.control {
+  display: grid;
+  gap: 8px;
+}
+
+label {
+  font-weight: 700;
+}
+
+select,
+textarea,
+button,
+input[type="range"] {
+  width: 100%;
+}
+
+select,
+textarea {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font: inherit;
+  color: inherit;
+  background: var(--surface-strong);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff8f2;
+  background: linear-gradient(135deg, var(--accent) 0%, #d1784a 100%);
+}
+
+button.secondary {
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+
+button.delete {
+  background: #efe2db;
+  color: #75331d;
+}
+
+#sentence-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.list {
+  display: grid;
+  gap: 16px;
+}
+
+.sentence-card {
+  padding: 20px;
+  border-radius: 22px;
+  background: rgba(255, 252, 247, 0.84);
+  border: 1px solid var(--line);
+}
+
+.sentence-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.sentence-text {
+  margin: 0 0 14px;
+  font-size: 1.14rem;
+  line-height: 1.5;
+}
+
+.sentence-text mark {
+  background: #ffdfa8;
+  color: inherit;
+  border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(100%, calc(100% - 20px));
+  }
+
+  .controls,
+  .composer,
+  .sentence-card {
+    padding: 16px;
+  }
+}

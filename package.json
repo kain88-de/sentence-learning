@@ -1,0 +1,16 @@
+{
+  "name": "german-dictation-static-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "biome check app-a app-b app-c shared",
+    "format": "biome format --write app-a app-b app-c shared",
+    "check:site": "node scripts/check-static-site.mjs",
+    "check": "bun run lint && bun run check:site",
+    "hooks:install": "PREK_HOME=/tmp/prek prek install",
+    "hooks:run": "PREK_HOME=/tmp/prek prek run --all-files"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4"
+  }
+}
