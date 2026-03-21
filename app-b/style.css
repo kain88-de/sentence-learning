@@ -164,9 +164,25 @@ button.delete {
   background: rgba(8, 20, 33, 0.72);
 }
 
+.status-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .status-box p {
   margin: 0;
   color: var(--muted);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(237, 244, 247, 0.16);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 900ms linear infinite;
 }
 
 .progress-track {
@@ -188,6 +204,22 @@ button.delete {
 .composer {
   display: grid;
   gap: 10px;
+}
+
+.debug {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.debug summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.debug p {
+  margin: 12px 0 0;
+  color: var(--muted);
 }
 
 .queue {
@@ -240,6 +272,17 @@ button.delete {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 920px) {

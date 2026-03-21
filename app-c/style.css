@@ -93,6 +93,22 @@ h1 {
   border-top: 1px solid var(--line);
 }
 
+.debug {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.debug summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.debug p {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
 label {
   font-weight: 700;
 }
@@ -147,9 +163,25 @@ button.danger {
   background: var(--paper);
 }
 
+.status-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .status-box p {
   margin: 0;
   color: var(--muted);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(32, 37, 42, 0.16);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 900ms linear infinite;
 }
 
 .progress-track {
@@ -251,6 +283,17 @@ button.danger {
 .row button {
   width: auto;
   padding-inline: 14px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 960px) {

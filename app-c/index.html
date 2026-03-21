@@ -31,7 +31,10 @@
           <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
           <p id="rate-output">0.75x</p>
           <div class="status-box">
-            <strong>MMS German</strong>
+            <div class="status-head">
+              <strong>MMS German</strong>
+              <span id="model-spinner" class="spinner" hidden></span>
+            </div>
             <p id="model-status">Model not loaded yet.</p>
             <div class="progress-track" aria-hidden="true">
               <span id="model-progress"></span>
@@ -39,6 +42,11 @@
           </div>
           <button id="prepare-button" type="button">Prepare German model</button>
         </div>
+
+        <details class="debug">
+          <summary>Debug</summary>
+          <p id="debug-cache-size">Generated audio cache: 0 KB</p>
+        </details>
       </aside>
 
       <section class="main-panel">
@@ -50,7 +58,8 @@
           <p class="detail-label">Selected sentence</p>
           <div id="detail-text" class="detail-text"></div>
           <div class="detail-actions">
-            <button id="play-button">Generate and play</button>
+            <button id="generate-button">Generate</button>
+            <button class="secondary" id="play-button">Play</button>
             <button class="secondary" id="stop-button">Stop</button>
             <button class="danger" id="delete-button" hidden>Delete custom sentence</button>
           </div>

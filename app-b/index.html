@@ -28,7 +28,10 @@
           <div class="meter">
             <span>Model status</span>
             <div class="status-box">
-              <strong>MMS German</strong>
+              <div class="status-head">
+                <strong>MMS German</strong>
+                <span id="model-spinner" class="spinner" hidden></span>
+              </div>
               <p id="model-status">Model not loaded yet.</p>
               <div class="progress-track" aria-hidden="true">
                 <span id="model-progress"></span>
@@ -37,7 +40,8 @@
           </div>
           <div class="hero-actions">
             <button id="prepare-button" type="button">Prepare German model</button>
-            <button id="play-current">Generate selected sentence</button>
+            <button id="generate-current">Generate selected sentence</button>
+            <button class="secondary" id="play-current">Play generated audio</button>
             <button class="secondary" id="stop-current">Stop</button>
           </div>
         </div>
@@ -51,6 +55,11 @@
           ></textarea>
           <button type="submit">Store in browser</button>
         </form>
+
+        <details class="debug">
+          <summary>Debug</summary>
+          <p id="debug-cache-size">Generated audio cache: 0 KB</p>
+        </details>
       </section>
 
       <section class="queue">

@@ -1,22 +1,10 @@
-import { env, pipeline } from "../node_modules/@huggingface/transformers/dist/transformers.web.js";
-
-export const MODEL_INFO = {
-  id: "Xenova/mms-tts-deu",
-  label: "MMS German",
-  license: "CC-BY-NC-4.0",
-};
-
-env.allowRemoteModels = true;
-env.useBrowserCache = true;
-env.backends.onnx.wasm.proxy = false;
-env.backends.onnx.wasm.numThreads = 1;
-env.backends.onnx.wasm.wasmPaths = "/node_modules/@huggingface/transformers/dist/";
-
-let synthesizerPromise = null;
+let worker = null;
 let audioContext = null;
 let activeSource = null;
 let generationToken = 0;
+let requestId = 0;
 
+const pendingRequests = new Map();
 const listeners = new Set();
 const state = {
   phase: "idle",
@@ -38,22 +26,6 @@ function setState(patch) {
   notify();
 }
 
-function progressToRatio(progressEvent) {
-  if (typeof progressEvent?.progress === "number") {
-    return Math.max(0, Math.min(1, progressEvent.progress / 100));
-  }
-
-  if (
-    typeof progressEvent?.loaded === "number" &&
-    typeof progressEvent?.total === "number" &&
-    progressEvent.total > 0
-  ) {
-    return Math.max(0, Math.min(1, progressEvent.loaded / progressEvent.total));
-  }
-
-  return 0;
-}
-
 function stopSource() {
   if (!activeSource) {
     return;
@@ -63,7 +35,7 @@ function stopSource() {
   try {
     activeSource.stop();
   } catch (_error) {
-    // Audio nodes can throw if they have already finished.
+    // Ignore stop errors for already-finished sources.
   }
   activeSource.disconnect();
   activeSource = null;
@@ -81,91 +53,105 @@ async function ensureAudioContext() {
   return audioContext;
 }
 
-async function loadSynthesizer() {
-  if (!synthesizerPromise) {
-    setState({
-      phase: "loading",
-      message: "Downloading and preparing the German model.",
-      progress: 0,
-      error: "",
-    });
-
-    synthesizerPromise = pipeline("text-to-speech", MODEL_INFO.id, {
-      progress_callback(progressEvent) {
-        const ratio = progressToRatio(progressEvent);
-        const statusLabel = progressEvent?.status
-          ? `${progressEvent.status}.`
-          : "Downloading model files.";
-        setState({
-          phase: "loading",
-          message: statusLabel,
-          progress: ratio,
-          error: "",
-        });
-      },
-    })
-      .then((synthesizer) => {
-        setState({
-          phase: "ready",
-          message: "German model ready.",
-          progress: 1,
-          error: "",
-        });
-        return synthesizer;
-      })
-      .catch((error) => {
-        synthesizerPromise = null;
-        setState({
-          phase: "error",
-          message: "Model load failed.",
-          progress: 0,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        throw error;
-      });
+async function playRawAudio(rawAudio, token) {
+  const context = await ensureAudioContext();
+  if (token !== generationToken) {
+    return;
   }
 
-  return synthesizerPromise;
+  stopSource();
+
+  const audioBuffer = context.createBuffer(1, rawAudio.audio.length, rawAudio.sampling_rate);
+  audioBuffer.copyToChannel(rawAudio.audio, 0);
+
+  const source = context.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(context.destination);
+  activeSource = source;
+
+  source.onended = () => {
+    if (activeSource === source) {
+      activeSource.disconnect();
+      activeSource = null;
+    }
+    setState({
+      phase: "ready",
+      message: "Playback finished.",
+      progress: 1,
+      isPlaying: false,
+      error: "",
+    });
+  };
+
+  setState({
+    phase: "playing",
+    message: "Playing generated audio.",
+    progress: 1,
+    isPlaying: true,
+    error: "",
+  });
+
+  source.start();
 }
 
-function playRawAudio(rawAudio, token) {
-  return ensureAudioContext().then((context) => {
-    if (token !== generationToken) {
+function ensureWorker() {
+  if (worker) {
+    return worker;
+  }
+
+  worker = new Worker(new URL("./model-tts.worker.js", import.meta.url), { type: "module" });
+
+  worker.addEventListener("message", (event) => {
+    const data = event.data;
+
+    if (data.type === "status") {
+      setState({
+        phase: data.phase,
+        message: data.message,
+        progress: data.progress,
+        isPlaying: false,
+        error: data.error ?? "",
+      });
       return;
     }
 
-    stopSource();
+    const pending = pendingRequests.get(data.id);
+    if (!pending) {
+      return;
+    }
 
-    const audioBuffer = context.createBuffer(1, rawAudio.audio.length, rawAudio.sampling_rate);
-    audioBuffer.copyToChannel(rawAudio.audio, 0);
+    pendingRequests.delete(data.id);
 
-    const source = context.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(context.destination);
-    activeSource = source;
+    if (data.type === "result") {
+      pending.resolve(data.payload);
+      return;
+    }
 
-    source.onended = () => {
-      if (activeSource === source) {
-        activeSource.disconnect();
-        activeSource = null;
-      }
-      setState({
-        phase: "ready",
-        message: "Playback finished.",
-        progress: 1,
-        isPlaying: false,
-      });
-    };
+    if (data.type === "error") {
+      pending.reject(new Error(data.error));
+    }
+  });
 
+  worker.addEventListener("error", (event) => {
     setState({
-      phase: "playing",
-      message: "Playing generated audio.",
-      progress: 1,
-      isPlaying: true,
-      error: "",
+      phase: "error",
+      message: "Model worker crashed.",
+      progress: 0,
+      isPlaying: false,
+      error: event.message,
     });
+  });
 
-    source.start();
+  return worker;
+}
+
+function runWorkerCommand(command) {
+  const activeWorker = ensureWorker();
+  const id = ++requestId;
+
+  return new Promise((resolve, reject) => {
+    pendingRequests.set(id, { resolve, reject });
+    activeWorker.postMessage({ id, ...command });
   });
 }
 
@@ -180,12 +166,11 @@ export function subscribe(listener) {
 }
 
 export async function preloadModel() {
-  await loadSynthesizer();
+  await runWorkerCommand({ command: "preload" });
 }
 
-export async function speakText(text, { speed = 0.75 } = {}) {
+export async function generateSpeech(text, { speed = 0.75 } = {}) {
   generationToken += 1;
-  const token = generationToken;
   stopSource();
 
   setState({
@@ -196,19 +181,36 @@ export async function speakText(text, { speed = 0.75 } = {}) {
     error: "",
   });
 
-  const synthesizer = await loadSynthesizer();
-  const output = await synthesizer(text, { speed });
-  await playRawAudio(output, token);
-  return output;
+  const payload = await runWorkerCommand({ command: "generate", text, speed });
+  setState({
+    phase: "ready",
+    message: "Audio generated and ready to play.",
+    progress: 1,
+    isPlaying: false,
+    error: "",
+  });
+  return payload;
+}
+
+export async function playGeneratedAudio(rawAudio) {
+  generationToken += 1;
+  const token = generationToken;
+  await playRawAudio(rawAudio, token);
+}
+
+export async function speakText(text, { speed = 0.75 } = {}) {
+  const payload = await generateSpeech(text, { speed });
+  await playGeneratedAudio(payload);
+  return payload;
 }
 
 export function stopPlayback() {
   generationToken += 1;
   stopSource();
   setState({
-    phase: synthesizerPromise ? "ready" : "idle",
-    message: synthesizerPromise ? "Playback stopped." : "Model not loaded yet.",
-    progress: synthesizerPromise ? 1 : 0,
+    phase: worker ? "ready" : "idle",
+    message: worker ? "Playback stopped." : "Model not loaded yet.",
+    progress: worker ? 1 : 0,
     isPlaying: false,
     error: "",
   });

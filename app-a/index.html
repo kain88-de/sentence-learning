@@ -29,7 +29,10 @@
         <div class="control">
           <label>Model</label>
           <div class="status-box">
-            <strong>MMS German</strong>
+            <div class="status-head">
+              <strong>MMS German</strong>
+              <span id="model-spinner" class="spinner" hidden></span>
+            </div>
             <p id="model-status">Model not loaded yet.</p>
             <div class="progress-track" aria-hidden="true">
               <span id="model-progress"></span>
@@ -56,6 +59,11 @@
           <button type="submit">Save sentence</button>
         </form>
       </section>
+
+      <details class="debug panel">
+        <summary>Debug</summary>
+        <p id="debug-cache-size">Generated audio cache: 0 KB</p>
+      </details>
 
       <section class="list" id="sentence-list" aria-live="polite"></section>
     </main>
