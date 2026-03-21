@@ -107,25 +107,18 @@ blockquote {
   line-height: 1.6;
 }
 
-blockquote mark {
-  background: rgba(230, 182, 85, 0.28);
-  color: inherit;
-}
-
 .meter {
   display: grid;
   gap: 10px;
   margin-top: 16px;
 }
 
-select,
 textarea,
 button,
 input[type="range"] {
   width: 100%;
 }
 
-select,
 textarea {
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -160,6 +153,36 @@ button.delete {
   display: flex;
   gap: 10px;
   margin-top: 16px;
+}
+
+.status-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(8, 20, 33, 0.72);
+}
+
+.status-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.progress-track {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(237, 244, 247, 0.08);
+}
+
+.progress-track span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent) 0%, #f5cc78 100%);
+  transition: width 180ms ease;
 }
 
 .composer {

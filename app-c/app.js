@@ -1,8 +1,16 @@
 import { BUILTIN_SENTENCES, normalizeSentence, sortSentences } from "../shared/data.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared/db.js";
-import { createSpeechController } from "../shared/speech.js";
+import {
+  getSnapshot,
+  preloadModel,
+  speakText,
+  stopPlayback,
+  subscribe,
+} from "../shared/model-tts.js";
 
-const voiceSelect = document.querySelector("#voice-select");
+const prepareButton = document.querySelector("#prepare-button");
+const modelStatus = document.querySelector("#model-status");
+const modelProgress = document.querySelector("#model-progress");
 const rateInput = document.querySelector("#rate-input");
 const rateOutput = document.querySelector("#rate-output");
 const sentenceForm = document.querySelector("#sentence-form");
@@ -18,33 +26,7 @@ const sentenceList = document.querySelector("#sentence-list");
 let userSentences = [];
 let selectedSentenceId = BUILTIN_SENTENCES[0].id;
 let activeSentenceId = null;
-let boundaryIndex = null;
-
-const speech = createSpeechController({
-  onVoices(voices) {
-    voiceSelect.innerHTML = "";
-    if (!voices.length) {
-      voiceSelect.add(new Option("No German voice available", ""));
-      return;
-    }
-
-    for (const voice of voices) {
-      voiceSelect.add(new Option(`${voice.name} (${voice.lang})`, voice.name));
-    }
-  },
-  onBoundary(charIndex) {
-    boundaryIndex = charIndex;
-    renderDetail();
-  },
-  onStart() {
-    render();
-  },
-  onEnd() {
-    activeSentenceId = null;
-    boundaryIndex = null;
-    render();
-  },
-});
+let modelState = getSnapshot();
 
 function allSentences() {
   return sortSentences([...BUILTIN_SENTENCES, ...userSentences]);
@@ -56,18 +38,6 @@ function getSelectedSentence() {
 
 function escapeHtml(text) {
   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
-function highlightText(text) {
-  if (boundaryIndex == null || boundaryIndex >= text.length) {
-    return escapeHtml(text);
-  }
-
-  const before = escapeHtml(text.slice(0, boundaryIndex));
-  const nextSpace = text.indexOf(" ", boundaryIndex);
-  const focus = escapeHtml(text.slice(boundaryIndex, nextSpace === -1 ? text.length : nextSpace));
-  const after = escapeHtml(text.slice(nextSpace === -1 ? text.length : nextSpace));
-  return `${before}<mark>${focus}</mark>${after}`;
 }
 
 function renderDetail() {
@@ -83,8 +53,7 @@ function renderDetail() {
 
   detailSource.textContent = sentence.source === "builtin" ? "Built-in" : "Custom";
   detailTheme.textContent = sentence.theme ?? "User sentence";
-  detailText.innerHTML =
-    sentence.id === activeSentenceId ? highlightText(sentence.text) : escapeHtml(sentence.text);
+  detailText.innerHTML = escapeHtml(sentence.text);
   deleteButton.hidden = sentence.source !== "user";
 }
 
@@ -105,6 +74,15 @@ function renderList() {
 
 function render() {
   rateOutput.textContent = `${Number(rateInput.value).toFixed(2)}x`;
+  modelStatus.textContent = modelState.error
+    ? `${modelState.message} ${modelState.error}`
+    : modelState.message;
+  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
+  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+  prepareButton.textContent =
+    modelState.phase === "ready" || modelState.phase === "playing"
+      ? "Model cached"
+      : "Prepare German model";
   renderDetail();
   renderList();
 }
@@ -125,13 +103,14 @@ function playSelectedSentence() {
   }
 
   activeSentenceId = sentence.id;
-  boundaryIndex = null;
-  speech.speak({
-    text: sentence.text,
-    voiceName: voiceSelect.value,
-    rate: rateInput.value,
-  });
   render();
+
+  speakText(sentence.text, { speed: Number(rateInput.value) })
+    .catch(() => {})
+    .finally(() => {
+      activeSentenceId = null;
+      render();
+    });
 }
 
 sentenceForm.addEventListener("submit", async (event) => {
@@ -148,11 +127,13 @@ sentenceForm.addEventListener("submit", async (event) => {
 });
 
 rateInput.addEventListener("input", render);
+prepareButton.addEventListener("click", async () => {
+  await preloadModel();
+});
 playButton.addEventListener("click", playSelectedSentence);
 stopButton.addEventListener("click", () => {
-  speech.stop();
+  stopPlayback();
   activeSentenceId = null;
-  boundaryIndex = null;
   render();
 });
 
@@ -163,9 +144,8 @@ deleteButton.addEventListener("click", async () => {
   }
 
   if (activeSentenceId === sentence.id) {
-    speech.stop();
+    stopPlayback();
     activeSentenceId = null;
-    boundaryIndex = null;
   }
 
   await deleteUserSentence(sentence.id);
@@ -179,6 +159,18 @@ sentenceList.addEventListener("click", (event) => {
   }
 
   selectedSentenceId = button.dataset.id;
+  render();
+});
+
+subscribe((snapshot) => {
+  modelState = snapshot;
+  if (
+    !snapshot.isPlaying &&
+    snapshot.phase === "ready" &&
+    snapshot.message === "Playback finished."
+  ) {
+    activeSentenceId = null;
+  }
   render();
 });
 

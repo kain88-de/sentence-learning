@@ -98,14 +98,12 @@ label {
 }
 
 textarea,
-select,
 button,
 input[type="range"] {
   width: 100%;
 }
 
-textarea,
-select {
+textarea {
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 12px 14px;
@@ -138,6 +136,36 @@ button.danger {
   margin: 0;
   color: var(--accent);
   font-weight: 700;
+}
+
+.status-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.status-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.progress-track {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(32, 37, 42, 0.08);
+}
+
+.progress-track span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent) 0%, #2e7d83 100%);
+  transition: width 180ms ease;
 }
 
 .main-panel {
@@ -180,12 +208,6 @@ button.danger {
   background: var(--paper-2);
   font-size: 1.28rem;
   line-height: 1.6;
-}
-
-.detail-text mark {
-  background: rgba(180, 94, 60, 0.22);
-  color: inherit;
-  border-radius: 4px;
 }
 
 .detail-actions {

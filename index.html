@@ -108,8 +108,8 @@
       <h1>German Dictation Apps</h1>
       <p>
         Three static browser apps for slow German sentence playback. Each one
-        includes built-in sample sentences, user-created sentences saved in
-        IndexedDB, and browser-native text-to-speech controls.
+        uses an in-browser German TTS model, includes built-in sample sentences,
+        and stores custom sentences in IndexedDB.
       </p>
 
       <section class="grid">
@@ -132,7 +132,9 @@
 
       <div class="note">
         Use a local static server when testing so IndexedDB behaves consistently,
-        for example: <code>python3 -m http.server</code> in this folder.
+        for example: <code>python3 -m http.server</code> in this folder. The
+        first playback will also download the German model files into the
+        browser cache.
       </div>
     </main>
   </body>

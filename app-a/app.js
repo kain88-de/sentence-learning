@@ -1,8 +1,16 @@
 import { BUILTIN_SENTENCES, normalizeSentence, sortSentences } from "../shared/data.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared/db.js";
-import { createSpeechController } from "../shared/speech.js";
+import {
+  getSnapshot,
+  preloadModel,
+  speakText,
+  stopPlayback,
+  subscribe,
+} from "../shared/model-tts.js";
 
-const voiceSelect = document.querySelector("#voice-select");
+const prepareButton = document.querySelector("#prepare-button");
+const modelStatus = document.querySelector("#model-status");
+const modelProgress = document.querySelector("#model-progress");
 const rateInput = document.querySelector("#rate-input");
 const rateOutput = document.querySelector("#rate-output");
 const sentenceForm = document.querySelector("#sentence-form");
@@ -11,36 +19,7 @@ const sentenceList = document.querySelector("#sentence-list");
 
 let userSentences = [];
 let activeSentenceId = null;
-let boundaryIndex = null;
-
-const speech = createSpeechController({
-  onVoices(voices) {
-    voiceSelect.innerHTML = "";
-
-    if (!voices.length) {
-      const option = new Option("No German voice available", "");
-      voiceSelect.add(option);
-      return;
-    }
-
-    for (const voice of voices) {
-      const label = `${voice.name} (${voice.lang})`;
-      voiceSelect.add(new Option(label, voice.name));
-    }
-  },
-  onBoundary(charIndex) {
-    boundaryIndex = charIndex;
-    render();
-  },
-  onStart() {
-    render();
-  },
-  onEnd() {
-    activeSentenceId = null;
-    boundaryIndex = null;
-    render();
-  },
-});
+let modelState = getSnapshot();
 
 function allSentences() {
   return sortSentences([...BUILTIN_SENTENCES, ...userSentences]);
@@ -50,39 +29,35 @@ function escapeHtml(text) {
   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
-function highlightText(text) {
-  if (boundaryIndex == null || boundaryIndex < 0 || boundaryIndex >= text.length) {
-    return escapeHtml(text);
-  }
-
-  const start = escapeHtml(text.slice(0, boundaryIndex));
-  const endBoundary = text.indexOf(" ", boundaryIndex);
-  const currentWord = escapeHtml(
-    text.slice(boundaryIndex, endBoundary === -1 ? text.length : endBoundary),
-  );
-  const end = escapeHtml(text.slice(endBoundary === -1 ? text.length : endBoundary));
-  return `${start}<mark>${currentWord}</mark>${end}`;
-}
-
 function render() {
-  const sentences = allSentences();
+  rateOutput.textContent = `${Number(rateInput.value).toFixed(2)}x`;
+  modelStatus.textContent = modelState.error
+    ? `${modelState.message} ${modelState.error}`
+    : modelState.message;
+  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
+  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+  prepareButton.textContent =
+    modelState.phase === "ready" || modelState.phase === "playing"
+      ? "Model cached"
+      : "Prepare German model";
 
+  const sentences = allSentences();
   sentenceList.innerHTML = sentences
     .map((sentence) => {
       const isActive = sentence.id === activeSentenceId;
       const description = sentence.theme ?? "Custom";
-      const textMarkup = isActive ? highlightText(sentence.text) : escapeHtml(sentence.text);
 
       return `
         <article class="sentence-card">
           <div class="sentence-meta">
             <span class="badge">${sentence.source === "builtin" ? "Built-in" : "Your sentence"}</span>
             <span class="badge">${description}</span>
+            ${isActive ? '<span class="badge">Generating or playing</span>' : ""}
           </div>
-          <p class="sentence-text">${textMarkup}</p>
+          <p class="sentence-text">${escapeHtml(sentence.text)}</p>
           <div class="actions">
             <button data-action="play" data-id="${sentence.id}">
-              ${isActive ? "Playing..." : "Play slowly"}
+              ${isActive ? "Working..." : "Generate and play"}
             </button>
             <button class="secondary" data-action="stop" data-id="${sentence.id}">Stop</button>
             ${
@@ -102,8 +77,9 @@ async function refreshUserSentences() {
   render();
 }
 
-rateInput.addEventListener("input", () => {
-  rateOutput.textContent = `${Number(rateInput.value).toFixed(2)}x`;
+rateInput.addEventListener("input", render);
+prepareButton.addEventListener("click", async () => {
+  await preloadModel();
 });
 
 sentenceForm.addEventListener("submit", async (event) => {
@@ -130,31 +106,42 @@ sentenceList.addEventListener("click", async (event) => {
 
   if (action === "play" && sentence) {
     activeSentenceId = sentence.id;
-    boundaryIndex = null;
     render();
-    speech.speak({
-      text: sentence.text,
-      voiceName: voiceSelect.value,
-      rate: rateInput.value,
-    });
+
+    try {
+      await speakText(sentence.text, { speed: Number(rateInput.value) });
+    } finally {
+      activeSentenceId = null;
+      render();
+    }
   }
 
   if (action === "stop") {
-    speech.stop();
+    stopPlayback();
     activeSentenceId = null;
-    boundaryIndex = null;
     render();
   }
 
   if (action === "delete" && sentence?.source === "user") {
     await deleteUserSentence(id);
     if (activeSentenceId === id) {
-      speech.stop();
+      stopPlayback();
       activeSentenceId = null;
-      boundaryIndex = null;
     }
     await refreshUserSentences();
   }
+});
+
+subscribe((snapshot) => {
+  modelState = snapshot;
+  if (
+    !snapshot.isPlaying &&
+    snapshot.phase === "ready" &&
+    snapshot.message === "Playback finished."
+  ) {
+    activeSentenceId = null;
+  }
+  render();
 });
 
 refreshUserSentences();

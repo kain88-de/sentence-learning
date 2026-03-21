@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1"
   }
 }
