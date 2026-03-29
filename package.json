@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "biome check app-a app-b app-c shared",
-    "format": "biome format --write app-a app-b app-c shared",
+    "lint": "biome check app-b shared",
+    "format": "biome format --write app-b shared",
     "check:site": "node scripts/check-static-site.mjs",
     "check": "bun run lint && bun run check:site",
     "build:audio": "bun run scripts/pregenerate-audio.mjs",

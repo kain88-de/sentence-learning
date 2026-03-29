@@ -8,9 +8,10 @@ const pendingRequests = new Map();
 const listeners = new Set();
 const state = {
   phase: "idle",
-  message: "Model not loaded yet.",
+  message: "Modell ist noch nicht geladen.",
   progress: 0,
   isPlaying: false,
+  isPaused: false,
   error: "",
 };
 
@@ -76,18 +77,20 @@ async function playRawAudio(rawAudio, token) {
     }
     setState({
       phase: "ready",
-      message: "Playback finished.",
+      message: "Wiedergabe beendet.",
       progress: 1,
       isPlaying: false,
+      isPaused: false,
       error: "",
     });
   };
 
   setState({
     phase: "playing",
-    message: "Playing generated audio.",
+    message: "Generiertes Audio wird abgespielt.",
     progress: 1,
     isPlaying: true,
+    isPaused: false,
     error: "",
   });
 
@@ -120,18 +123,20 @@ async function playAudioBuffer(audioBuffer, token) {
     }
     setState({
       phase: "ready",
-      message: "Playback finished.",
+      message: "Wiedergabe beendet.",
       progress: 1,
       isPlaying: false,
+      isPaused: false,
       error: "",
     });
   };
 
   setState({
     phase: "playing",
-    message: "Playing audio.",
+    message: "Audio wird abgespielt.",
     progress: 1,
     isPlaying: true,
+    isPaused: false,
     error: "",
   });
 
@@ -154,6 +159,7 @@ function ensureWorker() {
         message: data.message,
         progress: data.progress,
         isPlaying: false,
+        isPaused: false,
         error: data.error ?? "",
       });
       return;
@@ -179,9 +185,10 @@ function ensureWorker() {
   worker.addEventListener("error", (event) => {
     setState({
       phase: "error",
-      message: "Model worker crashed.",
+      message: "Der Modell-Worker ist abgestuerzt.",
       progress: 0,
       isPlaying: false,
+      isPaused: false,
       error: event.message,
     });
   });
@@ -219,18 +226,20 @@ export async function generateSpeech(text, { speed = 0.75 } = {}) {
 
   setState({
     phase: "generating",
-    message: "Generating German speech.",
+    message: "Deutsches Audio wird erzeugt.",
     progress: 1,
     isPlaying: false,
+    isPaused: false,
     error: "",
   });
 
   const payload = await runWorkerCommand({ command: "generate", text, speed });
   setState({
     phase: "ready",
-    message: "Audio generated and ready to play.",
+    message: "Audio ist bereit zur Wiedergabe.",
     progress: 1,
     isPlaying: false,
+    isPaused: false,
     error: "",
   });
   return payload;
@@ -247,9 +256,10 @@ export async function playAudioUrl(url) {
   const token = generationToken;
   setState({
     phase: "loading",
-    message: "Loading prebuilt audio.",
+    message: "Vorgefertigtes Audio wird geladen.",
     progress: 1,
     isPlaying: false,
+    isPaused: false,
     error: "",
   });
 
@@ -268,14 +278,47 @@ export async function speakText(text, { speed = 0.75 } = {}) {
   return payload;
 }
 
+export async function pausePlayback() {
+  if (!audioContext || !activeSource || audioContext.state !== "running") {
+    return;
+  }
+
+  await audioContext.suspend();
+  setState({
+    phase: "paused",
+    message: "Wiedergabe pausiert.",
+    progress: 1,
+    isPlaying: false,
+    isPaused: true,
+    error: "",
+  });
+}
+
+export async function resumePlayback() {
+  if (!audioContext || !activeSource || audioContext.state !== "suspended") {
+    return;
+  }
+
+  await audioContext.resume();
+  setState({
+    phase: "playing",
+    message: "Audio wird abgespielt.",
+    progress: 1,
+    isPlaying: true,
+    isPaused: false,
+    error: "",
+  });
+}
+
 export function stopPlayback() {
   generationToken += 1;
   stopSource();
   setState({
     phase: worker ? "ready" : "idle",
-    message: worker ? "Playback stopped." : "Model not loaded yet.",
+    message: worker ? "Wiedergabe gestoppt." : "Modell ist noch nicht geladen.",
     progress: worker ? 1 : 0,
     isPlaying: false,
+    isPaused: false,
     error: "",
   });
 }

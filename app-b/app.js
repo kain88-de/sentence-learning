@@ -8,10 +8,11 @@ import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared
 import {
   generateSpeech,
   getSnapshot,
+  pausePlayback,
   playAudioUrl,
   playGeneratedAudio,
   preloadModel,
-  stopPlayback,
+  resumePlayback,
   subscribe,
 } from "../shared/model-tts.js";
 
@@ -26,10 +27,7 @@ const rateOutput = document.querySelector("#rate-output");
 const randomButton = document.querySelector("#random-button");
 const playButton = document.querySelector("#play-button");
 const revealButton = document.querySelector("#reveal-button");
-const stopButton = document.querySelector("#stop-button");
 const promptState = document.querySelector("#prompt-state");
-const roundCount = document.querySelector("#round-count");
-const themePill = document.querySelector("#theme-pill");
 const revealCard = document.querySelector("#reveal-card");
 const revealedText = document.querySelector("#revealed-text");
 const sentenceForm = document.querySelector("#sentence-form");
@@ -44,7 +42,6 @@ let currentSentenceId = null;
 let revealVisible = false;
 let isWorking = false;
 let isPlaying = false;
-let round = 1;
 let modelState = getSnapshot();
 const generatedAudio = new Map();
 
@@ -103,11 +100,6 @@ async function playSentence(sentence) {
   await playGeneratedAudio(audio);
 }
 
-function nextRound() {
-  round += 1;
-  chooseRandomSentence();
-}
-
 function renderTabs() {
   for (const tab of tabs) {
     tab.classList.toggle("active", tab.dataset.tab === currentTab);
@@ -122,28 +114,27 @@ function renderPractice() {
   const speed = Number(rateInput.value);
 
   rateOutput.textContent = `${speed.toFixed(2)}x`;
-  roundCount.textContent = `${round}`;
-  themePill.textContent = sentence ? (sentence.theme ?? "Custom") : "Ready";
   promptState.textContent = sentence
     ? isWorking
-      ? "Preparing audio for this round..."
-      : isPlaying
-        ? "Step 2: write what you hear."
-        : revealVisible
-          ? "Step 3: compare your writing with the answer."
-          : "Step 1: press play and listen."
-    : "Add a sentence in Manage to start a round.";
+      ? "Audio wird vorbereitet..."
+      : modelState.isPaused
+        ? "Pausiert. Druecke auf Play, wenn du bereit bist."
+        : isPlaying
+          ? "Schreibe auf, was du hoerst, und pruefe es dann unten."
+          : "Druecke auf Play, schreibe den Satz und pruefe ihn dann unten."
+    : "Fuege unter Verwalten einen Satz hinzu, um zu beginnen.";
   playButton.disabled = !sentence || isWorking;
-  stopButton.disabled = !isPlaying && !isWorking;
   revealButton.disabled = !sentence;
-  revealCard.hidden = !sentence || !revealVisible;
-  revealedText.textContent = revealVisible && sentence ? sentence.text : "";
+  playButton.textContent = modelState.isPaused || isPlaying ? "❚❚" : "▶";
+  revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Loesung.";
+  revealCard.classList.toggle("is-revealed", Boolean(sentence && revealVisible));
+  revealedText.classList.toggle("is-blurred", !sentence || !revealVisible);
 }
 
 function renderManage() {
   const sentences = allSentences();
-  sentenceCount.textContent = `${sentences.length} sentence${sentences.length === 1 ? "" : "s"}`;
-  debugCacheSize.textContent = `Generated audio cache: ${cacheSizeText()}`;
+  sentenceCount.textContent = `${sentences.length} Satz${sentences.length === 1 ? "" : "e"}`;
+  debugCacheSize.textContent = `Audio-Zwischenspeicher: ${cacheSizeText()}`;
   modelStatus.textContent = modelState.error
     ? `${modelState.message} ${modelState.error}`
     : modelState.message;
@@ -153,17 +144,17 @@ function renderManage() {
 
   sentenceList.innerHTML = sentences
     .map((sentence) => {
-      const meta = sentence.source === "builtin" ? sentence.theme : "Custom";
+      const meta = sentence.source === "builtin" ? sentence.theme : "Eigen";
       return `
         <article class="sentence-row">
           <div class="sentence-copy">
             <p>${escapeHtml(sentence.text)}</p>
-            <div class="meta">${sentence.source === "builtin" ? "Built-in" : "Custom"} · ${escapeHtml(meta)}</div>
+            <div class="meta">${sentence.source === "builtin" ? "Vorhanden" : "Eigen"} · ${escapeHtml(meta)}</div>
           </div>
           ${
             sentence.source === "user"
-              ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Delete</button>`
-              : `<span class="meta">Read only</span>`
+              ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Loeschen</button>`
+              : `<span class="meta">Nur lesen</span>`
           }
         </article>
       `;
@@ -197,13 +188,29 @@ prepareButton.addEventListener("click", async () => {
 rateInput.addEventListener("input", render);
 
 randomButton.addEventListener("click", () => {
-  nextRound();
+  chooseRandomSentence();
+  isPlaying = false;
   render();
 });
 
 playButton.addEventListener("click", async () => {
   const sentence = currentSentence();
   if (!sentence) return;
+
+  if (modelState.isPaused) {
+    await resumePlayback();
+    isPlaying = true;
+    render();
+    return;
+  }
+
+  if (isPlaying) {
+    await pausePlayback();
+    isPlaying = false;
+    render();
+    return;
+  }
+
   isWorking = true;
   render();
 
@@ -218,13 +225,6 @@ playButton.addEventListener("click", async () => {
 
 revealButton.addEventListener("click", () => {
   revealVisible = !revealVisible;
-  render();
-});
-
-stopButton.addEventListener("click", () => {
-  stopPlayback();
-  isPlaying = false;
-  isWorking = false;
   render();
 });
 
@@ -251,8 +251,9 @@ subscribe((snapshot) => {
   modelState = snapshot;
   if (
     !snapshot.isPlaying &&
+    !snapshot.isPaused &&
     snapshot.phase === "ready" &&
-    snapshot.message === "Playback finished."
+    snapshot.message === "Wiedergabe beendet."
   ) {
     isPlaying = false;
   }

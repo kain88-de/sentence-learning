@@ -2,17 +2,8 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const repoRoot = process.cwd();
-const htmlFiles = [
-  "index.html",
-  "app-a/index.html",
-  "app-b/index.html",
-  "app-c/index.html",
-];
-const cssFiles = [
-  "app-a/style.css",
-  "app-b/style.css",
-  "app-c/style.css",
-];
+const htmlFiles = ["index.html", "app-b/index.html"];
+const cssFiles = ["app-b/style.css"];
 const errors = [];
 
 function addError(message) {
@@ -73,8 +64,8 @@ async function checkAppDirectories() {
     .map((entry) => entry.name)
     .sort();
 
-  if (appDirs.length !== 3) {
-    addError(`expected exactly 3 app directories, found ${appDirs.length}.`);
+  if (appDirs.length !== 1 || appDirs[0] !== "app-b") {
+    addError(`expected only app-b directory, found ${appDirs.join(", ") || "none"}.`);
   }
 
   for (const appDir of appDirs) {

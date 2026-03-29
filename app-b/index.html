@@ -1,113 +1,117 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Listen Loop</title>
+    <title>Schreibuebung</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <main class="deck">
-      <header class="hero">
-        <a class="back" href="../">All variations</a>
-        <p class="eyebrow">Variation 2</p>
-        <h1>Listen Loop</h1>
-        <p class="intro">A guided three-step routine: listen, write, then check.</p>
-      </header>
-
-      <nav class="tabs" aria-label="Sections">
-        <button class="tab active" data-tab="practice" type="button">Practice</button>
-        <button class="tab" data-tab="manage" type="button">Manage</button>
+      <nav class="tabs top-tabs" aria-label="Bereiche">
+        <button class="tab active" data-tab="practice" type="button">Ueben</button>
+        <button class="tab" data-tab="manage" type="button">Verwalten</button>
       </nav>
 
+      <header class="hero">
+        <h1>Schreibuebung</h1>
+        <p class="intro">Hoere zu, schreibe den Satz auf und decke dann die Loesung auf.</p>
+      </header>
+
       <section class="panel practice-view" data-view="practice">
-        <div class="lesson-strip">
-          <div class="lesson-badge">
-            <p class="label">Round</p>
-            <p id="round-count" class="big-number">1</p>
+        <article class="practice-card">
+          <div class="step-strip" aria-hidden="true">
+            <span class="step-chip">Hoeren</span>
+            <span class="step-chip">Schreiben</span>
+            <span class="step-chip">Aufdecken</span>
           </div>
-          <div class="lesson-badge">
-            <p class="label">Theme</p>
-            <p id="theme-pill" class="theme-pill">Ready</p>
+
+          <p id="prompt-state" class="prompt-state">
+            Druecke auf Play, schreibe den Satz und pruefe ihn dann unten.
+          </p>
+
+          <div class="control-row">
+            <button
+              id="play-button"
+              class="icon-button play"
+              type="button"
+              aria-label="Satz abspielen oder pausieren"
+              title="Satz abspielen oder pausieren"
+            >
+              ▶
+            </button>
+            <button
+              id="reveal-button"
+              class="icon-button clue"
+              type="button"
+              aria-label="Loesung deutlich zeigen"
+              title="Loesung deutlich zeigen"
+            >
+              ☼
+            </button>
+            <button
+              id="random-button"
+              class="icon-button next"
+              type="button"
+              aria-label="Anderen Satz laden"
+              title="Anderen Satz laden"
+            >
+              ↺
+            </button>
           </div>
-        </div>
 
-        <div class="steps">
-          <article class="step step-primary">
-            <p class="step-number">1</p>
-            <h2>Listen</h2>
-            <p id="prompt-state" class="prompt-state">Press play and listen carefully.</p>
-            <div class="step-actions">
-              <button id="play-button" class="icon-button play" type="button" aria-label="Play sentence" title="Play sentence">▶</button>
-              <button id="stop-button" class="icon-button stop" type="button" aria-label="Stop audio" title="Stop audio">■</button>
-            </div>
-          </article>
-
-          <article class="step">
-            <p class="step-number">2</p>
-            <h2>Write</h2>
-            <p class="step-copy">Write the sentence on paper, then tap the sun to see if you got it right.</p>
-          </article>
-
-          <article class="step">
-            <p class="step-number">3</p>
-            <h2>Check</h2>
-            <div class="step-actions">
-              <button id="reveal-button" class="icon-button clue" type="button" aria-label="Show sentence" title="Show sentence">☼</button>
-              <button id="random-button" class="icon-button next" type="button" aria-label="Next sentence" title="Next sentence">→</button>
-            </div>
-            <div id="reveal-card" class="reveal-card" hidden>
-              <p id="revealed-text" class="revealed-text"></p>
-            </div>
-          </article>
-        </div>
+          <div id="reveal-card" class="reveal-card">
+            <p class="label">Loesung</p>
+            <p id="revealed-text" class="revealed-text is-blurred"></p>
+          </div>
+        </article>
       </section>
 
       <section class="panel manage-view" data-view="manage" hidden>
         <div class="manage-head">
           <div>
-            <h2>Manage Sentences</h2>
-            <p>Sentence editing and audio setup live here so the practice view stays simple.</p>
+            <h2>Saetze verwalten</h2>
+            <p>Hier bearbeitest du Saetze und Audioeinstellungen, damit die Uebung einfach bleibt.</p>
           </div>
-          <p id="sentence-count" class="count">0 sentences</p>
+          <p id="sentence-count" class="count">0 Saetze</p>
         </div>
 
         <div class="audio-lab">
           <div>
-            <p class="label">Audio engine</p>
+            <p class="label">Audio</p>
             <div class="status-line">
               <span id="model-spinner" class="spinner" hidden></span>
-              <span id="model-status">Model not loaded yet.</span>
+              <span id="model-status">Modell ist noch nicht geladen.</span>
             </div>
             <div class="progress-track" aria-hidden="true">
               <span id="model-progress"></span>
             </div>
           </div>
-          <button id="prepare-button" type="button">Prepare model</button>
+          <button id="prepare-button" type="button">Modell vorbereiten</button>
         </div>
 
         <details class="advanced">
-          <summary>Advanced audio</summary>
+          <summary>Erweiterte Audioeinstellungen</summary>
           <div class="speed-row">
-            <label for="rate-input">Playback speed</label>
+            <label for="rate-input">Wiedergabegeschwindigkeit</label>
             <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
             <span id="rate-output">0.75x</span>
           </div>
         </details>
 
         <form id="sentence-form" class="composer">
-          <label for="sentence-input">Add a custom sentence</label>
+          <label for="sentence-input">Eigenen Satz hinzufuegen</label>
           <textarea
             id="sentence-input"
             rows="3"
             placeholder="Ich hoere den Satz und schreibe ihn ohne auf den Bildschirm zu schauen."
           ></textarea>
-          <button type="submit">Save sentence</button>
+          <button type="submit">Satz speichern</button>
         </form>
 
         <details class="debug">
           <summary>Debug</summary>
-          <p id="debug-cache-size">Generated audio cache: 0 KB</p>
+          <p id="debug-cache-size">Audio-Zwischenspeicher: 0 KB</p>
         </details>
 
         <div id="sentence-list" class="sentence-list" aria-live="polite"></div>
