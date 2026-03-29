@@ -28,6 +28,8 @@ const playButton = document.querySelector("#play-button");
 const revealButton = document.querySelector("#reveal-button");
 const stopButton = document.querySelector("#stop-button");
 const promptState = document.querySelector("#prompt-state");
+const roundCount = document.querySelector("#round-count");
+const themePill = document.querySelector("#theme-pill");
 const revealCard = document.querySelector("#reveal-card");
 const revealedText = document.querySelector("#revealed-text");
 const sentenceForm = document.querySelector("#sentence-form");
@@ -42,6 +44,7 @@ let currentSentenceId = null;
 let revealVisible = false;
 let isWorking = false;
 let isPlaying = false;
+let round = 1;
 let modelState = getSnapshot();
 const generatedAudio = new Map();
 
@@ -100,6 +103,11 @@ async function playSentence(sentence) {
   await playGeneratedAudio(audio);
 }
 
+function nextRound() {
+  round += 1;
+  chooseRandomSentence();
+}
+
 function renderTabs() {
   for (const tab of tabs) {
     tab.classList.toggle("active", tab.dataset.tab === currentTab);
@@ -112,29 +120,21 @@ function renderTabs() {
 function renderPractice() {
   const sentence = currentSentence();
   const speed = Number(rateInput.value);
-  const hasPlayableAudio = Boolean(
-    sentence &&
-      (generatedAudio.get(sentence.id)?.speed === speed ||
-        (sentence.audioSrc && speed === PREBUILT_AUDIO_SPEED)),
-  );
 
   rateOutput.textContent = `${speed.toFixed(2)}x`;
-  modelStatus.textContent = modelState.error
-    ? `${modelState.message} ${modelState.error}`
-    : modelState.message;
-  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
-  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
-  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+  roundCount.textContent = `${round}`;
+  themePill.textContent = sentence ? (sentence.theme ?? "Custom") : "Ready";
   promptState.textContent = sentence
     ? isWorking
-      ? "Preparing audio..."
+      ? "Preparing audio for this round..."
       : isPlaying
-        ? "Sentence is playing."
-        : "Random sentence selected. Press play."
-    : "No sentences available yet.";
+        ? "Step 2: write what you hear."
+        : revealVisible
+          ? "Step 3: compare your writing with the answer."
+          : "Step 1: press play and listen."
+    : "Add a sentence in Manage to start a round.";
   playButton.disabled = !sentence || isWorking;
-  playButton.textContent =
-    hasPlayableAudio && !isWorking ? "Play again" : isWorking ? "Working..." : "Play";
+  stopButton.disabled = !isPlaying && !isWorking;
   revealButton.disabled = !sentence;
   revealCard.hidden = !sentence || !revealVisible;
   revealedText.textContent = revealVisible && sentence ? sentence.text : "";
@@ -144,6 +144,13 @@ function renderManage() {
   const sentences = allSentences();
   sentenceCount.textContent = `${sentences.length} sentence${sentences.length === 1 ? "" : "s"}`;
   debugCacheSize.textContent = `Generated audio cache: ${cacheSizeText()}`;
+  modelStatus.textContent = modelState.error
+    ? `${modelState.message} ${modelState.error}`
+    : modelState.message;
+  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
+  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
+  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+
   sentenceList.innerHTML = sentences
     .map((sentence) => {
       const meta = sentence.source === "builtin" ? sentence.theme : "Custom";
@@ -190,7 +197,7 @@ prepareButton.addEventListener("click", async () => {
 rateInput.addEventListener("input", render);
 
 randomButton.addEventListener("click", () => {
-  chooseRandomSentence();
+  nextRound();
   render();
 });
 
@@ -211,7 +218,6 @@ playButton.addEventListener("click", async () => {
 
 revealButton.addEventListener("click", () => {
   revealVisible = !revealVisible;
-  revealButton.textContent = revealVisible ? "Hide" : "Reveal";
   render();
 });
 

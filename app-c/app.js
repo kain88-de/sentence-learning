@@ -24,10 +24,14 @@ const modelProgress = document.querySelector("#model-progress");
 const rateInput = document.querySelector("#rate-input");
 const rateOutput = document.querySelector("#rate-output");
 const randomButton = document.querySelector("#random-button");
+const previousButton = document.querySelector("#previous-button");
+const nextButton = document.querySelector("#next-button");
 const playButton = document.querySelector("#play-button");
 const revealButton = document.querySelector("#reveal-button");
 const stopButton = document.querySelector("#stop-button");
 const promptState = document.querySelector("#prompt-state");
+const themePill = document.querySelector("#theme-pill");
+const sentencePicker = document.querySelector("#sentence-picker");
 const revealCard = document.querySelector("#reveal-card");
 const revealedText = document.querySelector("#revealed-text");
 const sentenceForm = document.querySelector("#sentence-form");
@@ -51,6 +55,10 @@ function allSentences() {
 
 function currentSentence() {
   return allSentences().find((sentence) => sentence.id === currentSentenceId) ?? null;
+}
+
+function currentIndex() {
+  return allSentences().findIndex((sentence) => sentence.id === currentSentenceId);
 }
 
 function escapeHtml(text) {
@@ -78,6 +86,17 @@ function chooseRandomSentence() {
       ? sentences.filter((sentence) => sentence.id !== currentSentenceId)
       : sentences;
   currentSentenceId = pool[Math.floor(Math.random() * pool.length)].id;
+  revealVisible = false;
+}
+
+function selectSentenceByOffset(offset) {
+  const sentences = allSentences();
+  if (!sentences.length) return;
+
+  const index = currentIndex();
+  const safeIndex = index === -1 ? 0 : index;
+  const nextIndex = (safeIndex + offset + sentences.length) % sentences.length;
+  currentSentenceId = sentences[nextIndex].id;
   revealVisible = false;
 }
 
@@ -110,40 +129,58 @@ function renderTabs() {
 }
 
 function renderPractice() {
+  const sentences = allSentences();
   const sentence = currentSentence();
   const speed = Number(rateInput.value);
-  const hasPlayableAudio = Boolean(
-    sentence &&
-      (generatedAudio.get(sentence.id)?.speed === speed ||
-        (sentence.audioSrc && speed === PREBUILT_AUDIO_SPEED)),
-  );
 
   rateOutput.textContent = `${speed.toFixed(2)}x`;
-  modelStatus.textContent = modelState.error
-    ? `${modelState.message} ${modelState.error}`
-    : modelState.message;
-  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
-  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
-  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+  themePill.textContent = sentence ? (sentence.theme ?? "Custom") : "Ready";
   promptState.textContent = sentence
     ? isWorking
-      ? "Preparing audio..."
+      ? "Preparing this mission..."
       : isPlaying
-        ? "Sentence is playing."
-        : "Random sentence selected. Press play."
-    : "No sentences available yet.";
+        ? "Listen and write before you open the answer."
+        : revealVisible
+          ? "Open another card when you are ready."
+          : "Press play to start this card."
+    : "Add sentences in Manage to fill the board.";
   playButton.disabled = !sentence || isWorking;
-  playButton.textContent =
-    hasPlayableAudio && !isWorking ? "Play again" : isWorking ? "Working..." : "Play";
   revealButton.disabled = !sentence;
+  stopButton.disabled = !isPlaying && !isWorking;
+  previousButton.disabled = sentences.length < 2;
+  nextButton.disabled = sentences.length < 2;
   revealCard.hidden = !sentence || !revealVisible;
   revealedText.textContent = revealVisible && sentence ? sentence.text : "";
+
+  sentencePicker.innerHTML = sentences
+    .map((entry, index) => {
+      const active = entry.id === currentSentenceId;
+      return `
+        <button
+          class="picker-card${active ? " active" : ""}"
+          data-action="pick"
+          data-id="${entry.id}"
+          type="button"
+        >
+          <span class="picker-index">${index + 1}</span>
+          <span class="picker-theme">${escapeHtml(entry.theme ?? "Custom")}</span>
+        </button>
+      `;
+    })
+    .join("");
 }
 
 function renderManage() {
   const sentences = allSentences();
   sentenceCount.textContent = `${sentences.length} sentence${sentences.length === 1 ? "" : "s"}`;
   debugCacheSize.textContent = `Generated audio cache: ${cacheSizeText()}`;
+  modelStatus.textContent = modelState.error
+    ? `${modelState.message} ${modelState.error}`
+    : modelState.message;
+  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
+  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
+  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+
   sentenceList.innerHTML = sentences
     .map((sentence) => {
       const meta = sentence.source === "builtin" ? sentence.theme : "Custom";
@@ -194,6 +231,16 @@ randomButton.addEventListener("click", () => {
   render();
 });
 
+previousButton.addEventListener("click", () => {
+  selectSentenceByOffset(-1);
+  render();
+});
+
+nextButton.addEventListener("click", () => {
+  selectSentenceByOffset(1);
+  render();
+});
+
 playButton.addEventListener("click", async () => {
   const sentence = currentSentence();
   if (!sentence) return;
@@ -211,7 +258,6 @@ playButton.addEventListener("click", async () => {
 
 revealButton.addEventListener("click", () => {
   revealVisible = !revealVisible;
-  revealButton.textContent = revealVisible ? "Hide" : "Reveal";
   render();
 });
 
@@ -219,6 +265,14 @@ stopButton.addEventListener("click", () => {
   stopPlayback();
   isPlaying = false;
   isWorking = false;
+  render();
+});
+
+sentencePicker.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action='pick']");
+  if (!button) return;
+  currentSentenceId = button.dataset.id;
+  revealVisible = false;
   render();
 });
 

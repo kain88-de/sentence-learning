@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Language Ledger</title>
+    <title>Quest Board</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -11,8 +11,8 @@
       <header class="hero">
         <a class="back" href="../">All variations</a>
         <p class="eyebrow">Variation 3</p>
-        <h1>Language Ledger</h1>
-        <p class="intro">An editorial version of the same simple practice and manage flow.</p>
+        <h1>Quest Board</h1>
+        <p class="intro">A board of listening cards where children can choose a mission instead of only getting random prompts.</p>
       </header>
 
       <nav class="tabs" aria-label="Sections">
@@ -21,9 +21,55 @@
       </nav>
 
       <section class="panel practice-view" data-view="practice">
-        <div class="top-bar">
+        <div class="board-layout">
+          <aside class="mission-list">
+            <div class="mission-head">
+              <p class="label">Pick a card</p>
+              <button id="random-button" class="icon-button shuffle" type="button" aria-label="Pick a random sentence" title="Pick a random sentence">↺</button>
+            </div>
+            <div id="sentence-picker" class="sentence-picker" aria-label="Sentence choices"></div>
+          </aside>
+
+          <article class="stage-card">
+            <div class="stage-top">
+              <div>
+                <p class="label">Current mission</p>
+                <p id="theme-pill" class="theme-pill">Ready</p>
+              </div>
+              <div class="nav-actions">
+                <button id="previous-button" class="icon-button nav" type="button" aria-label="Previous sentence" title="Previous sentence">←</button>
+                <button id="next-button" class="icon-button nav" type="button" aria-label="Next sentence" title="Next sentence">→</button>
+              </div>
+            </div>
+
+            <div id="prompt-state" class="prompt-state">Choose a card and press play.</div>
+
+            <div class="stage-actions">
+              <button id="play-button" class="icon-button play" type="button" aria-label="Play sentence" title="Play sentence">▶</button>
+              <button id="reveal-button" class="icon-button clue" type="button" aria-label="Show sentence" title="Show sentence">☼</button>
+              <button id="stop-button" class="icon-button stop" type="button" aria-label="Stop audio" title="Stop audio">■</button>
+            </div>
+
+            <div id="reveal-card" class="reveal-card" hidden>
+              <p class="label">Answer card</p>
+              <p id="revealed-text" class="revealed-text"></p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel manage-view" data-view="manage" hidden>
+        <div class="manage-head">
           <div>
-            <p class="label">Model status</p>
+            <h2>Manage Sentences</h2>
+            <p>Add, remove, and tune audio here. Practice mode stays focused on the game board.</p>
+          </div>
+          <p id="sentence-count" class="count">0 sentences</p>
+        </div>
+
+        <div class="audio-lab">
+          <div>
+            <p class="label">Audio engine</p>
             <div class="status-line">
               <span id="model-spinner" class="spinner" hidden></span>
               <span id="model-status">Model not loaded yet.</span>
@@ -35,36 +81,14 @@
           <button id="prepare-button" type="button">Prepare model</button>
         </div>
 
-        <div class="speed-row">
-          <label for="rate-input">Playback speed</label>
-          <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
-          <span id="rate-output">0.75x</span>
-        </div>
-
-        <article class="prompt-card">
-          <p class="label">Prompt</p>
-          <div id="prompt-state" class="prompt-state">Random sentence selected. Press play.</div>
-          <div class="actions">
-            <button id="random-button" type="button">Random sentence</button>
-            <button id="play-button" type="button">Play</button>
-            <button class="secondary" id="reveal-button" type="button">Reveal</button>
-            <button class="secondary" id="stop-button" type="button">Stop</button>
+        <details class="advanced">
+          <summary>Advanced audio</summary>
+          <div class="speed-row">
+            <label for="rate-input">Playback speed</label>
+            <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.75" />
+            <span id="rate-output">0.75x</span>
           </div>
-          <div id="reveal-card" class="reveal-card" hidden>
-            <p class="label">Revealed sentence</p>
-            <p id="revealed-text" class="revealed-text"></p>
-          </div>
-        </article>
-      </section>
-
-      <section class="panel manage-view" data-view="manage" hidden>
-        <div class="manage-head">
-          <div>
-            <h2>Manage Sentences</h2>
-            <p>Keep practice minimal and move storage tasks here.</p>
-          </div>
-          <p id="sentence-count" class="count">0 sentences</p>
-        </div>
+        </details>
 
         <form id="sentence-form" class="composer">
           <label for="sentence-input">Add a custom sentence</label>

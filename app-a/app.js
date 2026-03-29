@@ -28,6 +28,8 @@ const playButton = document.querySelector("#play-button");
 const revealButton = document.querySelector("#reveal-button");
 const stopButton = document.querySelector("#stop-button");
 const promptState = document.querySelector("#prompt-state");
+const themePill = document.querySelector("#theme-pill");
+const starCount = document.querySelector("#star-count");
 const revealCard = document.querySelector("#reveal-card");
 const revealedText = document.querySelector("#revealed-text");
 const sentenceForm = document.querySelector("#sentence-form");
@@ -42,6 +44,7 @@ let currentSentenceId = null;
 let revealVisible = false;
 let isWorking = false;
 let isPlaying = false;
+let stars = 0;
 let modelState = getSnapshot();
 const generatedAudio = new Map();
 
@@ -116,30 +119,22 @@ function renderTabs() {
 function renderPractice() {
   const sentence = currentSentence();
   const speed = Number(rateInput.value);
-  const hasPlayableAudio = Boolean(
-    sentence &&
-      (generatedAudio.get(sentence.id)?.speed === speed ||
-        (sentence.audioSrc && speed === PREBUILT_AUDIO_SPEED)),
-  );
 
   rateOutput.textContent = `${speed.toFixed(2)}x`;
-  modelStatus.textContent = modelState.error
-    ? `${modelState.message} ${modelState.error}`
-    : modelState.message;
-  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
-  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
-  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
   promptState.textContent = sentence
     ? isWorking
-      ? "Preparing audio..."
+      ? "Making the audio..."
       : isPlaying
-        ? "Sentence is playing."
-        : "Random sentence selected. Press play."
-    : "No sentences available yet.";
+        ? "Listen carefully and write what you hear."
+        : revealVisible
+          ? "You can check the answer below."
+          : "Tap play to hear the sentence."
+    : "Add a sentence in Manage to begin.";
+  themePill.textContent = sentence ? (sentence.theme ?? "Custom") : "Ready";
+  starCount.textContent = `${stars}`;
   playButton.disabled = !sentence || isWorking;
-  playButton.textContent =
-    hasPlayableAudio && !isWorking ? "Play again" : isWorking ? "Working..." : "Play";
   revealButton.disabled = !sentence;
+  stopButton.disabled = !isPlaying && !isWorking;
   revealCard.hidden = !sentence || !revealVisible;
   revealedText.textContent = revealVisible && sentence ? sentence.text : "";
 }
@@ -148,6 +143,13 @@ function renderManage() {
   const sentences = allSentences();
   sentenceCount.textContent = `${sentences.length} sentence${sentences.length === 1 ? "" : "s"}`;
   debugCacheSize.textContent = `Generated audio cache: ${cacheSizeText()}`;
+  modelStatus.textContent = modelState.error
+    ? `${modelState.message} ${modelState.error}`
+    : modelState.message;
+  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
+  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
+  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
+
   sentenceList.innerHTML = sentences
     .map((sentence) => {
       const meta = sentence.source === "builtin" ? sentence.theme : "Custom";
@@ -210,6 +212,7 @@ playButton.addEventListener("click", async () => {
   try {
     await playSentence(sentence);
     isPlaying = true;
+    stars += 1;
   } finally {
     isWorking = false;
     render();
@@ -218,7 +221,6 @@ playButton.addEventListener("click", async () => {
 
 revealButton.addEventListener("click", () => {
   revealVisible = !revealVisible;
-  revealButton.textContent = revealVisible ? "Hide" : "Reveal";
   render();
 });
 
