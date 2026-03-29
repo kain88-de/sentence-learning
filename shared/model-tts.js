@@ -32,7 +32,20 @@ function cleanupAudioElement(audioElement) {
   audioElement.onended = null;
   audioElement.onpause = null;
   audioElement.onerror = null;
-  audioElement.src = "";
+}
+
+function ensureHtmlAudioElement() {
+  if (activeAudioElement) {
+    return activeAudioElement;
+  }
+
+  const audioElement = document.createElement("audio");
+  audioElement.preload = "auto";
+  audioElement.playsInline = true;
+  audioElement.style.display = "none";
+  document.body.append(audioElement);
+  activeAudioElement = audioElement;
+  return audioElement;
 }
 
 function stopSource() {
@@ -58,7 +71,8 @@ function stopAudioElement() {
 
   activeAudioElement.pause();
   cleanupAudioElement(activeAudioElement);
-  activeAudioElement = null;
+  activeAudioElement.removeAttribute("src");
+  activeAudioElement.load();
   return true;
 }
 
@@ -172,14 +186,12 @@ async function playAudioBuffer(audioBuffer, token) {
 async function playHtmlAudio(url, token) {
   stopActivePlayback();
 
-  const audio = new Audio(url);
-  activeAudioElement = audio;
+  const audio = ensureHtmlAudioElement();
+  audio.src = url;
+  audio.load();
 
   audio.onended = () => {
-    if (activeAudioElement === audio) {
-      cleanupAudioElement(audio);
-      activeAudioElement = null;
-    }
+    cleanupAudioElement(audio);
     setState({
       phase: "ready",
       message: "Wiedergabe beendet.",
@@ -206,10 +218,7 @@ async function playHtmlAudio(url, token) {
   };
 
   audio.onerror = () => {
-    if (activeAudioElement === audio) {
-      cleanupAudioElement(audio);
-      activeAudioElement = null;
-    }
+    cleanupAudioElement(audio);
     setState({
       phase: "error",
       message: "Audio konnte nicht abgespielt werden.",
@@ -222,9 +231,8 @@ async function playHtmlAudio(url, token) {
 
   if (token !== generationToken) {
     cleanupAudioElement(audio);
-    if (activeAudioElement === audio) {
-      activeAudioElement = null;
-    }
+    audio.removeAttribute("src");
+    audio.load();
     return;
   }
 
@@ -240,10 +248,9 @@ async function playHtmlAudio(url, token) {
   try {
     await audio.play();
   } catch (error) {
-    if (activeAudioElement === audio) {
-      cleanupAudioElement(audio);
-      activeAudioElement = null;
-    }
+    cleanupAudioElement(audio);
+    audio.removeAttribute("src");
+    audio.load();
     setState({
       phase: "error",
       message: "Audio konnte nicht abgespielt werden.",
