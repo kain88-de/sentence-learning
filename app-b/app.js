@@ -1,6 +1,6 @@
 import {
-  BUILTIN_SENTENCES,
   PREBUILT_AUDIO_SPEED,
+  loadBuiltinSentences,
   normalizeSentence,
   sortSentences,
 } from "../shared/data.js";
@@ -37,6 +37,7 @@ const sentenceList = document.querySelector("#sentence-list");
 const debugCacheSize = document.querySelector("#debug-cache-size");
 
 let currentTab = "practice";
+let builtinSentences = [];
 let userSentences = [];
 let currentSentenceId = null;
 let revealVisible = false;
@@ -46,7 +47,7 @@ let modelState = getSnapshot();
 const generatedAudio = new Map();
 
 function allSentences() {
-  return sortSentences([...BUILTIN_SENTENCES, ...userSentences]);
+  return sortSentences([...builtinSentences, ...userSentences]);
 }
 
 function currentSentence() {
@@ -144,12 +145,11 @@ function renderManage() {
 
   sentenceList.innerHTML = sentences
     .map((sentence) => {
-      const meta = sentence.source === "builtin" ? sentence.theme : "Eigen";
       return `
         <article class="sentence-row">
           <div class="sentence-copy">
             <p>${escapeHtml(sentence.text)}</p>
-            <div class="meta">${sentence.source === "builtin" ? "Vorhanden" : "Eigen"} · ${escapeHtml(meta)}</div>
+            <div class="meta">${sentence.source === "builtin" ? "Vorlage" : "Eigen"}</div>
           </div>
           ${
             sentence.source === "user"
@@ -172,6 +172,15 @@ async function refreshUserSentences() {
   userSentences = await getUserSentences();
   if (!currentSentence()) chooseRandomSentence();
   render();
+}
+
+async function initializeBuiltinSentences() {
+  try {
+    builtinSentences = await loadBuiltinSentences();
+  } catch (error) {
+    builtinSentences = [];
+    console.error(error);
+  }
 }
 
 for (const tab of tabs) {
@@ -261,5 +270,6 @@ subscribe((snapshot) => {
 });
 
 chooseRandomSentence();
-refreshUserSentences();
+await initializeBuiltinSentences();
+await refreshUserSentences();
 render();

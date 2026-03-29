@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { env, pipeline } from "@huggingface/transformers";
 
-import { BUILTIN_SENTENCES, PREBUILT_AUDIO_SPEED } from "../shared/data.js";
+import { PREBUILT_AUDIO_SPEED, loadBuiltinSentencesForBuild } from "../shared/data.js";
 
 const repoRoot = process.cwd();
 const audioDir = path.join(repoRoot, "audio");
@@ -18,7 +18,14 @@ env.cacheDir = modelCacheDir;
 
 function sentenceHash(sentence) {
   return createHash("sha256")
-    .update(JSON.stringify({ id: sentence.id, text: sentence.text, speed: PREBUILT_AUDIO_SPEED, modelId }))
+    .update(
+      JSON.stringify({
+        id: sentence.id,
+        text: sentence.text,
+        speed: PREBUILT_AUDIO_SPEED,
+        modelId,
+      }),
+    )
     .digest("hex");
 }
 
@@ -83,12 +90,13 @@ await mkdir(modelCacheDir, { recursive: true });
 
 const manifest = await loadManifest();
 const nextManifest = {};
+const builtInSentences = await loadBuiltinSentencesForBuild(readFile);
 
 console.log(`Preparing built-in audio at speed ${PREBUILT_AUDIO_SPEED} with model ${modelId}`);
 
 const synthesizer = await pipeline("text-to-speech", modelId);
 
-for (const sentence of BUILTIN_SENTENCES) {
+for (const sentence of builtInSentences) {
   const outputPath = path.join(audioDir, `${sentence.id}.wav`);
   const hash = sentenceHash(sentence);
   const cached = manifest[sentence.id];
