@@ -1,6 +1,7 @@
 let worker = null;
 let audioContext = null;
 let activeSource = null;
+let activeAudioElement = null;
 let generationToken = 0;
 let requestId = 0;
 
@@ -27,9 +28,16 @@ function setState(patch) {
   notify();
 }
 
+function cleanupAudioElement(audioElement) {
+  audioElement.onended = null;
+  audioElement.onpause = null;
+  audioElement.onerror = null;
+  audioElement.src = "";
+}
+
 function stopSource() {
   if (!activeSource) {
-    return;
+    return false;
   }
 
   activeSource.onended = null;
@@ -40,6 +48,24 @@ function stopSource() {
   }
   activeSource.disconnect();
   activeSource = null;
+  return true;
+}
+
+function stopAudioElement() {
+  if (!activeAudioElement) {
+    return false;
+  }
+
+  activeAudioElement.pause();
+  cleanupAudioElement(activeAudioElement);
+  activeAudioElement = null;
+  return true;
+}
+
+function stopActivePlayback() {
+  const stoppedSource = stopSource();
+  const stoppedElement = stopAudioElement();
+  return stoppedSource || stoppedElement;
 }
 
 async function ensureAudioContext() {
@@ -60,7 +86,7 @@ async function playRawAudio(rawAudio, token) {
     return;
   }
 
-  stopSource();
+  stopActivePlayback();
 
   const audioBuffer = context.createBuffer(1, rawAudio.audio.length, rawAudio.sampling_rate);
   audioBuffer.copyToChannel(rawAudio.audio, 0);
@@ -109,7 +135,7 @@ async function playAudioBuffer(audioBuffer, token) {
     return;
   }
 
-  stopSource();
+  stopActivePlayback();
 
   const source = context.createBufferSource();
   source.buffer = audioBuffer;
@@ -141,6 +167,93 @@ async function playAudioBuffer(audioBuffer, token) {
   });
 
   source.start();
+}
+
+async function playHtmlAudio(url, token) {
+  stopActivePlayback();
+
+  const audio = new Audio(url);
+  activeAudioElement = audio;
+
+  audio.onended = () => {
+    if (activeAudioElement === audio) {
+      cleanupAudioElement(audio);
+      activeAudioElement = null;
+    }
+    setState({
+      phase: "ready",
+      message: "Wiedergabe beendet.",
+      progress: 1,
+      isPlaying: false,
+      isPaused: false,
+      error: "",
+    });
+  };
+
+  audio.onpause = () => {
+    if (audio.ended || activeAudioElement !== audio) {
+      return;
+    }
+
+    setState({
+      phase: "paused",
+      message: "Wiedergabe pausiert.",
+      progress: 1,
+      isPlaying: false,
+      isPaused: true,
+      error: "",
+    });
+  };
+
+  audio.onerror = () => {
+    if (activeAudioElement === audio) {
+      cleanupAudioElement(audio);
+      activeAudioElement = null;
+    }
+    setState({
+      phase: "error",
+      message: "Audio konnte nicht abgespielt werden.",
+      progress: 0,
+      isPlaying: false,
+      isPaused: false,
+      error: "HTML audio playback failed.",
+    });
+  };
+
+  if (token !== generationToken) {
+    cleanupAudioElement(audio);
+    if (activeAudioElement === audio) {
+      activeAudioElement = null;
+    }
+    return;
+  }
+
+  setState({
+    phase: "playing",
+    message: "Audio wird abgespielt.",
+    progress: 1,
+    isPlaying: true,
+    isPaused: false,
+    error: "",
+  });
+
+  try {
+    await audio.play();
+  } catch (error) {
+    if (activeAudioElement === audio) {
+      cleanupAudioElement(audio);
+      activeAudioElement = null;
+    }
+    setState({
+      phase: "error",
+      message: "Audio konnte nicht abgespielt werden.",
+      progress: 0,
+      isPlaying: false,
+      isPaused: false,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 function ensureWorker() {
@@ -222,7 +335,7 @@ export async function preloadModel() {
 
 export async function generateSpeech(text, { speed = 0.75 } = {}) {
   generationToken += 1;
-  stopSource();
+  stopActivePlayback();
 
   setState({
     phase: "generating",
@@ -263,13 +376,7 @@ export async function playAudioUrl(url) {
     error: "",
   });
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to load audio: ${response.status}`);
-  }
-
-  const audioBuffer = await decodeAudioBuffer(await response.arrayBuffer());
-  await playAudioBuffer(audioBuffer, token);
+  await playHtmlAudio(url, token);
 }
 
 export async function speakText(text, { speed = 0.75 } = {}) {
@@ -279,6 +386,11 @@ export async function speakText(text, { speed = 0.75 } = {}) {
 }
 
 export async function pausePlayback() {
+  if (activeAudioElement) {
+    activeAudioElement.pause();
+    return;
+  }
+
   if (!audioContext || !activeSource || audioContext.state !== "running") {
     return;
   }
@@ -295,6 +407,19 @@ export async function pausePlayback() {
 }
 
 export async function resumePlayback() {
+  if (activeAudioElement) {
+    await activeAudioElement.play();
+    setState({
+      phase: "playing",
+      message: "Audio wird abgespielt.",
+      progress: 1,
+      isPlaying: true,
+      isPaused: false,
+      error: "",
+    });
+    return;
+  }
+
   if (!audioContext || !activeSource || audioContext.state !== "suspended") {
     return;
   }
@@ -312,7 +437,7 @@ export async function resumePlayback() {
 
 export function stopPlayback() {
   generationToken += 1;
-  stopSource();
+  stopActivePlayback();
   setState({
     phase: worker ? "ready" : "idle",
     message: worker ? "Wiedergabe gestoppt." : "Modell ist noch nicht geladen.",
