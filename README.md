@@ -21,7 +21,13 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 
 ## Run Locally
 
-Serve the repository with a local static server:
+Serve the repository with:
+
+```bash
+just serve
+```
+
+Fallback if `just` is not installed:
 
 ```bash
 python3 -m http.server 8000
@@ -41,6 +47,12 @@ Install dependencies:
 
 ```bash
 bun install
+```
+
+Start a local dev server:
+
+```bash
+just serve
 ```
 
 Run checks:

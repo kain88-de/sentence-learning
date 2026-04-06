@@ -18,6 +18,12 @@ The app lives in `app-b/` and depends on shared browser-side modules in `shared/
 Serve the site with a local static server:
 
 ```bash
+just serve
+```
+
+Fallback:
+
+```bash
 python3 -m http.server 8000
 ```
 
@@ -41,6 +47,12 @@ Reformat source files:
 
 ```bash
 bun run format
+```
+
+Preferred local test server:
+
+```bash
+just serve
 ```
 
 Regenerate built-in audio after changing `PREBUILT_AUDIO_SPEED` or built-in sentences:
@@ -68,5 +80,5 @@ bun run build:audio
 
 ## Current Default
 
-- Default reading speed is `0.65x`.
+- Default reading speed is `0.55x`.
 - The default-speed built-in audio files were generated to match that value.
