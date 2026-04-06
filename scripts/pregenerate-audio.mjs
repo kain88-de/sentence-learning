@@ -4,7 +4,11 @@ import path from "node:path";
 
 import { env, pipeline } from "@huggingface/transformers";
 
-import { PREBUILT_AUDIO_SPEED, loadBuiltinSentencesForBuild } from "../shared/data.js";
+import {
+  PREBUILT_AUDIO_SPEED,
+  loadBuiltinSentencesForBuild,
+  loadBuiltinWordsForBuild,
+} from "../shared/data.js";
 
 const repoRoot = process.cwd();
 const audioDir = path.join(repoRoot, "audio");
@@ -16,12 +20,12 @@ const modelId = "Xenova/mms-tts-deu";
 env.allowRemoteModels = true;
 env.cacheDir = modelCacheDir;
 
-function sentenceHash(sentence) {
+function entryHash(entry) {
   return createHash("sha256")
     .update(
       JSON.stringify({
-        id: sentence.id,
-        text: sentence.text,
+        id: entry.id,
+        text: entry.text,
         speed: PREBUILT_AUDIO_SPEED,
         modelId,
       }),
@@ -91,30 +95,31 @@ await mkdir(modelCacheDir, { recursive: true });
 const manifest = await loadManifest();
 const nextManifest = {};
 const builtInSentences = await loadBuiltinSentencesForBuild(readFile);
+const builtInWords = await loadBuiltinWordsForBuild(readFile);
 
 console.log(`Preparing built-in audio at speed ${PREBUILT_AUDIO_SPEED} with model ${modelId}`);
 
 const synthesizer = await pipeline("text-to-speech", modelId);
 
-for (const sentence of builtInSentences) {
-  const outputPath = path.join(audioDir, `${sentence.id}.wav`);
-  const hash = sentenceHash(sentence);
-  const cached = manifest[sentence.id];
+for (const entry of [...builtInSentences, ...builtInWords]) {
+  const outputPath = path.join(audioDir, `${entry.id}.wav`);
+  const hash = entryHash(entry);
+  const cached = manifest[entry.id];
 
   if (cached?.hash === hash && (await fileExists(outputPath))) {
-    nextManifest[sentence.id] = cached;
-    console.log(`skip ${sentence.id}`);
+    nextManifest[entry.id] = cached;
+    console.log(`skip ${entry.id}`);
     continue;
   }
 
-  console.log(`generate ${sentence.id}`);
-  const output = await synthesizer(sentence.text, { speed: PREBUILT_AUDIO_SPEED });
+  console.log(`generate ${entry.id}`);
+  const output = await synthesizer(entry.text, { speed: PREBUILT_AUDIO_SPEED });
   const wav = encodeWav(output.audio, output.sampling_rate);
   await writeFile(outputPath, wav);
 
-  nextManifest[sentence.id] = {
+  nextManifest[entry.id] = {
     hash,
-    file: `audio/${sentence.id}.wav`,
+    file: `audio/${entry.id}.wav`,
     bytes: wav.byteLength,
     speed: PREBUILT_AUDIO_SPEED,
     modelId,

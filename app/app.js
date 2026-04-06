@@ -35,12 +35,36 @@ const sentenceInput = document.querySelector("#sentence-input");
 const sentenceCount = document.querySelector("#sentence-count");
 const sentenceList = document.querySelector("#sentence-list");
 const debugCacheSize = document.querySelector("#debug-cache-size");
+const wordPromptState = document.querySelector("#word-prompt-state");
+const wordGrid = document.querySelector("#word-grid");
+const wordRevealButton = document.querySelector("#word-reveal-button");
+const wordRandomButton = document.querySelector("#word-random-button");
+const wordRevealCard = document.querySelector("#word-reveal-card");
+const revealedWords = document.querySelector("#revealed-words");
+
+const BUILTIN_WORDS = [
+  "Haus",
+  "Baum",
+  "Katze",
+  "Schule",
+  "Sonne",
+  "Blume",
+  "Tisch",
+  "Brot",
+  "Wasser",
+  "Garten",
+  "Apfel",
+  "Lampe",
+];
 
 let currentTab = "practice";
 let builtinSentences = [];
 let userSentences = [];
 let currentSentenceId = null;
 let revealVisible = false;
+let currentWords = [];
+let wordsRevealVisible = false;
+let activeWord = "";
 let isWorking = false;
 let isPlaying = false;
 let modelState = getSnapshot();
@@ -82,6 +106,13 @@ function chooseRandomSentence() {
   revealVisible = false;
 }
 
+function chooseRandomWords() {
+  const shuffled = [...BUILTIN_WORDS].sort(() => Math.random() - 0.5);
+  currentWords = shuffled.slice(0, 5);
+  wordsRevealVisible = false;
+  activeWord = "";
+}
+
 async function playSentence(sentence) {
   const speed = Number(rateInput.value);
   const cached = generatedAudio.get(sentence.id);
@@ -98,6 +129,21 @@ async function playSentence(sentence) {
 
   const audio = await generateSpeech(sentence.text, { speed });
   generatedAudio.set(sentence.id, { ...audio, speed });
+  await playGeneratedAudio(audio);
+}
+
+async function playWord(word) {
+  const speed = Number(rateInput.value);
+  const cacheKey = `word:${word}`;
+  const cached = generatedAudio.get(cacheKey);
+
+  if (cached && cached.speed === speed) {
+    await playGeneratedAudio(cached);
+    return;
+  }
+
+  const audio = await generateSpeech(word, { speed });
+  generatedAudio.set(cacheKey, { ...audio, speed });
   await playGeneratedAudio(audio);
 }
 
@@ -130,6 +176,40 @@ function renderPractice() {
   revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Loesung.";
   revealCard.classList.toggle("is-revealed", Boolean(sentence && revealVisible));
   revealedText.classList.toggle("is-blurred", !sentence || !revealVisible);
+}
+
+function renderWords() {
+  const speed = Number(rateInput.value);
+
+  rateOutput.textContent = `${speed.toFixed(2)}x`;
+  wordPromptState.textContent = currentWords.length
+    ? isWorking
+      ? "Audio wird vorbereitet..."
+      : activeWord
+        ? `Tippe weiter oder decke die Woerter spaeter auf. Zuletzt gehoert: ${activeWord}.`
+        : "Tippe auf ein Feld, hoere das Wort und decke die Woerter spaeter selbst auf."
+    : "Es sind noch keine Woerter verfuegbar.";
+  wordRandomButton.disabled = !currentWords.length || isWorking;
+  wordRevealButton.disabled = !currentWords.length;
+  wordGrid.innerHTML = currentWords
+    .map((word, index) => {
+      return `
+        <button class="word-tile" data-action="play-word" data-word="${escapeHtml(word)}" type="button">
+          <span class="word-number">${index + 1}</span>
+          <span class="word-icon">▶</span>
+        </button>
+      `;
+    })
+    .join("");
+  revealedWords.innerHTML = currentWords
+    .map((word) => {
+      return `<span class="revealed-word ${wordsRevealVisible ? "" : "is-blurred"}">${escapeHtml(word)}</span>`;
+    })
+    .join("");
+  wordRevealCard.classList.toggle(
+    "is-revealed",
+    Boolean(currentWords.length && wordsRevealVisible),
+  );
 }
 
 function renderManage() {
@@ -165,6 +245,7 @@ function renderManage() {
 function render() {
   renderTabs();
   renderPractice();
+  renderWords();
   renderManage();
 }
 
@@ -198,6 +279,12 @@ rateInput.addEventListener("input", render);
 
 randomButton.addEventListener("click", () => {
   chooseRandomSentence();
+  isPlaying = false;
+  render();
+});
+
+wordRandomButton.addEventListener("click", () => {
+  chooseRandomWords();
   isPlaying = false;
   render();
 });
@@ -237,6 +324,31 @@ revealButton.addEventListener("click", () => {
   render();
 });
 
+wordRevealButton.addEventListener("click", () => {
+  wordsRevealVisible = !wordsRevealVisible;
+  render();
+});
+
+wordGrid.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-action='play-word']");
+  if (!button) return;
+
+  const word = button.dataset.word;
+  if (!word) return;
+
+  activeWord = word;
+  isWorking = true;
+  render();
+
+  try {
+    await playWord(word);
+    isPlaying = true;
+  } finally {
+    isWorking = false;
+    render();
+  }
+});
+
 sentenceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = normalizeSentence(sentenceInput.value);
@@ -270,6 +382,7 @@ subscribe((snapshot) => {
 });
 
 chooseRandomSentence();
+chooseRandomWords();
 await initializeBuiltinSentences();
 await refreshUserSentences();
 render();

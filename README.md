@@ -14,7 +14,7 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 
 ## Project Structure
 
-- [app-b/](/home/max/code/learning/app-b) - the app UI
+- [app/](/home/max/code/learning/app) - the app UI
 - [shared/](/home/max/code/learning/shared) - shared TTS, data, and storage logic
 - [audio/](/home/max/code/learning/audio) - built-in audio files
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
@@ -39,7 +39,7 @@ Then open:
 http://localhost:8000/
 ```
 
-The root page redirects to the app in `app-b/`.
+The root [index.html](/home/max/code/learning/index.html) is a thin wrapper that redirects `/` to the real app in [app/](/home/max/code/learning/app). That keeps the current static hosting setup simple and avoids adding a build step for now.
 
 ## Development
 
@@ -58,7 +58,7 @@ just serve
 Run checks:
 
 ```bash
-npx biome check app-b shared
+npx biome check app shared
 node scripts/check-static-site.mjs
 ```
 
@@ -73,7 +73,12 @@ bun run check
 - Use a local server for testing so IndexedDB behaves consistently.
 - On first model-based playback, the browser will download the German model files into its cache.
 - Built-in audio is used when the playback speed matches the pre-generated audio speed.
-- There are no GitHub Actions configured yet.
+- The repo root is a redirect wrapper; the actual app entry point is [app/index.html](/home/max/code/learning/app/index.html).
+
+## TODO
+
+- Add a GitHub Actions workflow to publish the static site to GitHub Pages.
+- Let that workflow build and commit or publish the pre-generated audio assets as part of deployment.
 
 ## License
 

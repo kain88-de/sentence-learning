@@ -3,11 +3,12 @@
 ## Purpose
 
 This repository contains a static browser-based German dictation practice app for children.
-The app lives in `app-b/` and depends on shared browser-side modules in `shared/`.
+The app lives in `app/` and depends on shared browser-side modules in `shared/`.
 
 ## Repo Map
 
-- `app-b/`: UI, page structure, and app behavior
+- `index.html`: root wrapper that redirects `/` to `app/`
+- `app/`: UI, page structure, and app behavior
 - `shared/`: text-to-speech playback, sentence data loading, and IndexedDB helpers
 - `audio/`: pre-generated built-in WAV files for sample sentences
 - `data/`: built-in sentence source text
@@ -27,7 +28,9 @@ Fallback:
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/`, which redirects to `app-b/`.
+Open `http://localhost:8000/`, which redirects to `app/`.
+
+The root `index.html` is intentionally just a wrapper. Keep that setup unless the project explicitly adopts a build/deploy step that moves the app back to `/`.
 
 ## Common Commands
 
@@ -82,3 +85,8 @@ bun run build:audio
 
 - Default reading speed is `0.55x`.
 - The default-speed built-in audio files were generated to match that value.
+
+## Future Work
+
+- A GitHub Actions publish flow for GitHub Pages is a good next step.
+- That workflow can also generate built-in audio during deployment if the project chooses not to store all generated assets manually.

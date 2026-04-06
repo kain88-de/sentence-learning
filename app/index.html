@@ -10,6 +10,7 @@
     <main class="deck">
       <nav class="tabs top-tabs" aria-label="Bereiche">
         <button class="tab active" data-tab="practice" type="button">Ueben</button>
+        <button class="tab" data-tab="words" type="button">Woerter</button>
         <button class="tab" data-tab="manage" type="button">Verwalten</button>
       </nav>
 
@@ -63,6 +64,48 @@
           <div id="reveal-card" class="reveal-card">
             <p class="label">Loesung</p>
             <p id="revealed-text" class="revealed-text is-blurred"></p>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel words-view" data-view="words" hidden>
+        <article class="practice-card">
+          <div class="step-strip" aria-hidden="true">
+            <span class="step-chip">Hoeren</span>
+            <span class="step-chip">Merken</span>
+            <span class="step-chip">Aufdecken</span>
+          </div>
+
+          <p id="word-prompt-state" class="prompt-state">
+            Tippe auf ein Feld, hoere das Wort und decke die Woerter spaeter selbst auf.
+          </p>
+
+          <div id="word-grid" class="word-grid" aria-live="polite"></div>
+
+          <div class="control-row">
+            <button
+              id="word-reveal-button"
+              class="icon-button clue"
+              type="button"
+              aria-label="Woerter deutlich zeigen"
+              title="Woerter deutlich zeigen"
+            >
+              ☼
+            </button>
+            <button
+              id="word-random-button"
+              class="icon-button next"
+              type="button"
+              aria-label="Andere Woerter laden"
+              title="Andere Woerter laden"
+            >
+              ↺
+            </button>
+          </div>
+
+          <div id="word-reveal-card" class="reveal-card">
+            <p class="label">Woerter</p>
+            <div id="revealed-words" class="revealed-words"></div>
           </div>
         </article>
       </section>

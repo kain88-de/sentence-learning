@@ -2,8 +2,8 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const repoRoot = process.cwd();
-const htmlFiles = ["index.html", "app-b/index.html"];
-const cssFiles = ["app-b/style.css"];
+const htmlFiles = ["index.html", "app/index.html"];
+const cssFiles = ["app/style.css"];
 const errors = [];
 
 function addError(message) {
@@ -60,12 +60,12 @@ async function checkCssFile(relativePath) {
 async function checkAppDirectories() {
   const entries = await readdir(repoRoot, { withFileTypes: true });
   const appDirs = entries
-    .filter((entry) => entry.isDirectory() && /^app-[a-z]$/.test(entry.name))
+    .filter((entry) => entry.isDirectory() && entry.name === "app")
     .map((entry) => entry.name)
     .sort();
 
-  if (appDirs.length !== 1 || appDirs[0] !== "app-b") {
-    addError(`expected only app-b directory, found ${appDirs.join(", ") || "none"}.`);
+  if (appDirs.length !== 1 || appDirs[0] !== "app") {
+    addError(`expected only app directory, found ${appDirs.join(", ") || "none"}.`);
   }
 
   for (const appDir of appDirs) {
