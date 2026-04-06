@@ -1,4 +1,4 @@
-export const PREBUILT_AUDIO_SPEED = 0.75;
+export const PREBUILT_AUDIO_SPEED = 0.65;
 
 const BUILTIN_SENTENCES_FILE = new URL("../data/builtin-sentences.txt", import.meta.url);
 

@@ -340,7 +340,7 @@ export async function preloadModel() {
   await runWorkerCommand({ command: "preload" });
 }
 
-export async function generateSpeech(text, { speed = 0.75 } = {}) {
+export async function generateSpeech(text, { speed = 0.65 } = {}) {
   generationToken += 1;
   stopActivePlayback();
 
@@ -386,7 +386,7 @@ export async function playAudioUrl(url) {
   await playHtmlAudio(url, token);
 }
 
-export async function speakText(text, { speed = 0.75 } = {}) {
+export async function speakText(text, { speed = 0.65 } = {}) {
   const payload = await generateSpeech(text, { speed });
   await playGeneratedAudio(payload);
   return payload;
