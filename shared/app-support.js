@@ -1,6 +1,7 @@
+import { playAudioUrl, playGeneratedAudio } from "./audio-playback.js";
 import { PREBUILT_AUDIO_SPEED, loadBuiltinSentences, sortSentences } from "./data.js";
 import { getUserSentences } from "./db.js";
-import { generateSpeech, playAudioUrl, playGeneratedAudio } from "./model-tts.js";
+import { generateSpeech } from "./model-tts.js";
 
 export async function loadSentenceCollections() {
   let builtinSentences = [];

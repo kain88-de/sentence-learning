@@ -81,6 +81,30 @@ bun run build:audio
   - generated TTS playback for non-default speeds
 - Run `bun run check` after code changes.
 
+## Frontend Architecture
+
+- Keep page-level modules thin:
+  - `app/app.js` owns the practice page only
+  - `app/manage.js` owns the manage page only
+- Put cross-page browser modules in `shared/`, not `app/`.
+- Split responsibilities by concern, not by feature label:
+  - sentence loading and sentence helpers in `shared/`
+  - model download and synthesis worker orchestration in `shared/model-tts.js`
+  - playback transport and playback state in a separate playback module
+- Do not let UI code depend on human-readable status text such as `"Wiedergabe beendet."` for logic.
+- UI state decisions must be based on stable fields like:
+  - `phase`
+  - `isPlaying`
+  - `isPaused`
+  - explicit IDs or flags
+- Avoid mixing these responsibilities in one module:
+  - worker/model lifecycle
+  - audio playback
+  - sentence persistence
+  - page rendering
+- If a helper is shared by both pages, place it in `shared/` and give it a concern-based name.
+- Prefer normal page navigation over hiding whole screens behind client-side tab state when the screens have different responsibilities.
+
 ## Current Default
 
 - Default reading speed is `0.55x`.

@@ -1,6 +1,7 @@
 import { allSentences, loadSentenceCollections, playSentenceAudio } from "../shared/app-support.js";
+import { pausePlayback, resumePlayback } from "../shared/audio-playback.js";
+import { getAudioSnapshot, subscribeAudioState } from "../shared/audio-state.js";
 import { PREBUILT_AUDIO_SPEED } from "../shared/data.js";
-import { getSnapshot, pausePlayback, resumePlayback, subscribe } from "../shared/model-tts.js";
 
 const playButton = document.querySelector("#play-button");
 const randomButton = document.querySelector("#random-button");
@@ -13,8 +14,7 @@ let userSentences = [];
 let currentSentenceId = null;
 let revealVisible = false;
 let isWorking = false;
-let isPlaying = false;
-let modelState = getSnapshot();
+let modelState = getAudioSnapshot();
 let hasInitialized = false;
 const generatedAudio = new Map();
 
@@ -42,13 +42,13 @@ function chooseRandomSentence() {
 
 function render() {
   const sentence = currentSentence();
-  const playLabel = modelState.isPaused || isPlaying ? "Pausieren" : "Abspielen";
+  const playLabel = modelState.isPaused || modelState.isPlaying ? "Pausieren" : "Abspielen";
 
   playButton.disabled = !sentence || isWorking;
   randomButton.disabled = !sentence || isWorking;
   revealButton.disabled = !sentence;
   playButton.querySelector(".button-icon").textContent =
-    modelState.isPaused || isPlaying ? "❚❚" : "▶";
+    modelState.isPaused || modelState.isPlaying ? "❚❚" : "▶";
   playButton.querySelector(".button-label").textContent = playLabel;
   revealButton.textContent = revealVisible ? "Lösung ausblenden" : "Lösung zeigen";
   revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Lösung.";
@@ -58,7 +58,6 @@ function render() {
 
 randomButton.addEventListener("click", () => {
   chooseRandomSentence();
-  isPlaying = false;
   render();
 });
 
@@ -68,14 +67,12 @@ playButton.addEventListener("click", async () => {
 
   if (modelState.isPaused) {
     await resumePlayback();
-    isPlaying = true;
     render();
     return;
   }
 
-  if (isPlaying) {
+  if (modelState.isPlaying) {
     await pausePlayback();
-    isPlaying = false;
     render();
     return;
   }
@@ -85,7 +82,6 @@ playButton.addEventListener("click", async () => {
 
   try {
     await playSentenceAudio(sentence, PREBUILT_AUDIO_SPEED, generatedAudio);
-    isPlaying = true;
   } finally {
     isWorking = false;
     render();
@@ -97,16 +93,8 @@ revealButton.addEventListener("click", () => {
   render();
 });
 
-subscribe((snapshot) => {
+subscribeAudioState((snapshot) => {
   modelState = snapshot;
-  if (
-    !snapshot.isPlaying &&
-    !snapshot.isPaused &&
-    snapshot.phase === "ready" &&
-    snapshot.message === "Wiedergabe beendet."
-  ) {
-    isPlaying = false;
-  }
   if (!hasInitialized) return;
   render();
 });

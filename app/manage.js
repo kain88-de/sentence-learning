@@ -5,9 +5,10 @@ import {
   loadSentenceCollections,
   playSentenceAudio,
 } from "../shared/app-support.js";
+import { getAudioSnapshot, subscribeAudioState } from "../shared/audio-state.js";
 import { normalizeSentence } from "../shared/data.js";
 import { addUserSentence, deleteUserSentence } from "../shared/db.js";
-import { getSnapshot, preloadModel, subscribe } from "../shared/model-tts.js";
+import { preloadModel } from "../shared/model-tts.js";
 
 const prepareButton = document.querySelector("#prepare-button");
 const modelSpinner = document.querySelector("#model-spinner");
@@ -24,7 +25,7 @@ const debugCacheSize = document.querySelector("#debug-cache-size");
 let builtinSentences = [];
 let userSentences = [];
 let isWorking = false;
-let modelState = getSnapshot();
+let modelState = getAudioSnapshot();
 const generatedAudio = new Map();
 
 function render() {
@@ -114,7 +115,7 @@ sentenceList.addEventListener("click", async (event) => {
   await refreshSentences();
 });
 
-subscribe((snapshot) => {
+subscribeAudioState((snapshot) => {
   modelState = snapshot;
   render();
 });
