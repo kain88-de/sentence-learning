@@ -1,4 +1,4 @@
-import { setAudioState } from "./audio-state.js";
+import { setModelStatus } from "./model-status.js";
 
 let worker = null;
 let requestId = 0;
@@ -16,12 +16,10 @@ function ensureWorker() {
     const data = event.data;
 
     if (data.type === "status") {
-      setAudioState({
+      setModelStatus({
         phase: data.phase,
         message: data.message,
         progress: data.progress,
-        isPlaying: false,
-        isPaused: false,
         error: data.error ?? "",
       });
       return;
@@ -45,12 +43,10 @@ function ensureWorker() {
   });
 
   worker.addEventListener("error", (event) => {
-    setAudioState({
+    setModelStatus({
       phase: "error",
       message: "Der Modell-Worker ist abgestuerzt.",
       progress: 0,
-      isPlaying: false,
-      isPaused: false,
       error: event.message,
     });
   });
@@ -72,23 +68,19 @@ export async function preloadModel() {
   await runWorkerCommand({ command: "preload" });
 }
 
-export async function generateSpeech(text, { speed = 0.55 } = {}) {
-  setAudioState({
+export async function generateSpeech(text) {
+  setModelStatus({
     phase: "generating",
     message: "Deutsches Audio wird erzeugt.",
     progress: 1,
-    isPlaying: false,
-    isPaused: false,
     error: "",
   });
 
-  const payload = await runWorkerCommand({ command: "generate", text, speed });
-  setAudioState({
+  const payload = await runWorkerCommand({ command: "generate", text, speed: 0.55 });
+  setModelStatus({
     phase: "ready",
     message: "Audio ist bereit zur Wiedergabe.",
     progress: 1,
-    isPlaying: false,
-    isPaused: false,
     error: "",
   });
   return payload;

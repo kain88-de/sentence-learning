@@ -1,7 +1,7 @@
-import { allSentences, loadSentenceCollections, playSentenceAudio } from "../shared/app-support.js";
 import { pausePlayback, resumePlayback } from "../shared/audio-playback.js";
-import { getAudioSnapshot, subscribeAudioState } from "../shared/audio-state.js";
-import { PREBUILT_AUDIO_SPEED } from "../shared/data.js";
+import { getPlaybackSnapshot, subscribePlaybackState } from "../shared/playback-state.js";
+import { playSentence } from "../shared/sentence-audio.js";
+import { allSentences, loadSentenceCollections } from "../shared/sentence-repository.js";
 
 const playButton = document.querySelector("#play-button");
 const randomButton = document.querySelector("#random-button");
@@ -14,9 +14,8 @@ let userSentences = [];
 let currentSentenceId = null;
 let revealVisible = false;
 let isWorking = false;
-let modelState = getAudioSnapshot();
+let playbackState = getPlaybackSnapshot();
 let hasInitialized = false;
-const generatedAudio = new Map();
 
 function currentSentence() {
   return allSentences(builtinSentences, userSentences).find(
@@ -42,13 +41,13 @@ function chooseRandomSentence() {
 
 function render() {
   const sentence = currentSentence();
-  const playLabel = modelState.isPaused || modelState.isPlaying ? "Pausieren" : "Abspielen";
+  const playLabel = playbackState.isPaused || playbackState.isPlaying ? "Pausieren" : "Abspielen";
 
   playButton.disabled = !sentence || isWorking;
   randomButton.disabled = !sentence || isWorking;
   revealButton.disabled = !sentence;
   playButton.querySelector(".button-icon").textContent =
-    modelState.isPaused || modelState.isPlaying ? "❚❚" : "▶";
+    playbackState.isPaused || playbackState.isPlaying ? "❚❚" : "▶";
   playButton.querySelector(".button-label").textContent = playLabel;
   revealButton.textContent = revealVisible ? "Lösung ausblenden" : "Lösung zeigen";
   revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Lösung.";
@@ -65,13 +64,13 @@ playButton.addEventListener("click", async () => {
   const sentence = currentSentence();
   if (!sentence) return;
 
-  if (modelState.isPaused) {
+  if (playbackState.isPaused) {
     await resumePlayback();
     render();
     return;
   }
 
-  if (modelState.isPlaying) {
+  if (playbackState.isPlaying) {
     await pausePlayback();
     render();
     return;
@@ -81,7 +80,9 @@ playButton.addEventListener("click", async () => {
   render();
 
   try {
-    await playSentenceAudio(sentence, PREBUILT_AUDIO_SPEED, generatedAudio);
+    await playSentence(sentence);
+  } catch (error) {
+    console.error(error);
   } finally {
     isWorking = false;
     render();
@@ -93,8 +94,8 @@ revealButton.addEventListener("click", () => {
   render();
 });
 
-subscribeAudioState((snapshot) => {
-  modelState = snapshot;
+subscribePlaybackState((snapshot) => {
+  playbackState = snapshot;
   if (!hasInitialized) return;
   render();
 });

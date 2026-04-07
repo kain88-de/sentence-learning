@@ -1,39 +1,41 @@
+import { escapeHtml } from "../shared/html.js";
+import { getModelStatusSnapshot, subscribeModelStatus } from "../shared/model-status.js";
+import { preloadModel } from "../shared/model-tts.js";
+import {
+  deleteSentenceAudio,
+  ensureUserSentenceAudio,
+  getUserAudioUsageText,
+  playSentence,
+} from "../shared/sentence-audio.js";
 import {
   allSentences,
-  cacheSizeText,
-  escapeHtml,
+  createUserSentence,
   loadSentenceCollections,
-  playSentenceAudio,
-} from "../shared/app-support.js";
-import { getAudioSnapshot, subscribeAudioState } from "../shared/audio-state.js";
-import { normalizeSentence } from "../shared/data.js";
-import { addUserSentence, deleteUserSentence } from "../shared/db.js";
-import { preloadModel } from "../shared/model-tts.js";
+  removeUserSentence,
+} from "../shared/sentence-repository.js";
 
 const prepareButton = document.querySelector("#prepare-button");
 const modelSpinner = document.querySelector("#model-spinner");
 const modelStatus = document.querySelector("#model-status");
 const modelProgress = document.querySelector("#model-progress");
-const rateInput = document.querySelector("#rate-input");
-const rateOutput = document.querySelector("#rate-output");
 const sentenceForm = document.querySelector("#sentence-form");
 const sentenceInput = document.querySelector("#sentence-input");
 const sentenceCount = document.querySelector("#sentence-count");
 const sentenceList = document.querySelector("#sentence-list");
 const debugCacheSize = document.querySelector("#debug-cache-size");
+const composerStatus = document.querySelector("#composer-status");
 
 let builtinSentences = [];
 let userSentences = [];
 let isWorking = false;
-let modelState = getAudioSnapshot();
-const generatedAudio = new Map();
+let currentStatus = "Gib einen Satz ein. Das Audio wird direkt danach gespeichert.";
+let modelState = getModelStatusSnapshot();
 
 function render() {
   const sentences = allSentences(builtinSentences, userSentences);
 
-  rateOutput.textContent = `${Number(rateInput.value).toFixed(2)}x`;
   sentenceCount.textContent = `${sentences.length} ${sentences.length === 1 ? "Satz" : "Sätze"}`;
-  debugCacheSize.textContent = `Audio-Zwischenspeicher: ${cacheSizeText(generatedAudio)}`;
+  composerStatus.textContent = currentStatus;
   modelStatus.textContent = modelState.error
     ? `${modelState.message} ${modelState.error}`
     : modelState.message;
@@ -68,6 +70,7 @@ function render() {
 
 async function refreshSentences() {
   ({ builtinSentences, userSentences } = await loadSentenceCollections());
+  debugCacheSize.textContent = `Gespeicherte Audiodaten: ${await getUserAudioUsageText()}`;
   render();
 }
 
@@ -75,16 +78,41 @@ prepareButton.addEventListener("click", async () => {
   await preloadModel();
 });
 
-rateInput.addEventListener("input", render);
-
 sentenceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const text = normalizeSentence(sentenceInput.value);
-  if (!text) return;
+  if (isWorking) return;
 
-  await addUserSentence(text);
-  sentenceInput.value = "";
-  await refreshSentences();
+  isWorking = true;
+  currentStatus = "Satz wird gespeichert...";
+  render();
+
+  try {
+    const sentence = await createUserSentence(sentenceInput.value);
+    if (!sentence) {
+      currentStatus = "Bitte gib einen Satz ein.";
+      return;
+    }
+
+    sentenceInput.value = "";
+    currentStatus = "Audio wird erzeugt und in der Datenbank gespeichert...";
+    render();
+
+    try {
+      await ensureUserSentenceAudio(sentence);
+    } catch (error) {
+      await removeUserSentence(sentence.id);
+      throw error;
+    }
+
+    currentStatus = "Satz und Audio wurden gespeichert.";
+    await refreshSentences();
+  } catch (error) {
+    console.error(error);
+    currentStatus = "Audio konnte nicht gespeichert werden.";
+  } finally {
+    isWorking = false;
+    render();
+  }
 });
 
 sentenceList.addEventListener("click", async (event) => {
@@ -99,7 +127,10 @@ sentenceList.addEventListener("click", async (event) => {
     render();
 
     try {
-      await playSentenceAudio(sentence, Number(rateInput.value), generatedAudio);
+      await playSentence(sentence);
+    } catch (error) {
+      console.error(error);
+      currentStatus = "Audio für diesen Satz fehlt oder ist fehlerhaft.";
     } finally {
       isWorking = false;
       render();
@@ -108,14 +139,27 @@ sentenceList.addEventListener("click", async (event) => {
   }
 
   const deleteButton = event.target.closest("button[data-action='delete']");
-  if (!deleteButton) return;
+  if (!deleteButton || isWorking) return;
 
-  await deleteUserSentence(deleteButton.dataset.id);
-  generatedAudio.delete(deleteButton.dataset.id);
-  await refreshSentences();
+  const sentence = userSentences.find((entry) => entry.id === deleteButton.dataset.id);
+  if (!sentence) return;
+
+  isWorking = true;
+  currentStatus = "Satz und gespeichertes Audio werden gelöscht...";
+  render();
+
+  try {
+    await removeUserSentence(sentence.id);
+    await deleteSentenceAudio(sentence);
+    currentStatus = "Satz gelöscht.";
+    await refreshSentences();
+  } finally {
+    isWorking = false;
+    render();
+  }
 });
 
-subscribeAudioState((snapshot) => {
+subscribeModelStatus((snapshot) => {
   modelState = snapshot;
   render();
 });

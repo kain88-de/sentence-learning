@@ -3,29 +3,27 @@ const state = {
   phase: "idle",
   message: "Modell ist noch nicht geladen.",
   progress: 0,
-  isPlaying: false,
-  isPaused: false,
   error: "",
 };
 
 function notify() {
-  const snapshot = getAudioSnapshot();
+  const snapshot = getModelStatusSnapshot();
   for (const listener of listeners) {
     listener(snapshot);
   }
 }
 
-export function setAudioState(patch) {
+export function setModelStatus(patch) {
   Object.assign(state, patch);
   notify();
 }
 
-export function getAudioSnapshot() {
+export function getModelStatusSnapshot() {
   return { ...state };
 }
 
-export function subscribeAudioState(listener) {
+export function subscribeModelStatus(listener) {
   listeners.add(listener);
-  listener(getAudioSnapshot());
+  listener(getModelStatusSnapshot());
   return () => listeners.delete(listener);
 }

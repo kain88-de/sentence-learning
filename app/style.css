@@ -304,7 +304,6 @@ button.delete:focus-visible:not(:disabled) {
 
 .manage-head,
 .status-line,
-.speed-row,
 .sentence-row {
   display: flex;
   align-items: center;
@@ -412,31 +411,26 @@ button.delete:focus-visible:not(:disabled) {
   animation: spin 900ms linear infinite;
 }
 
-.advanced,
 .debug {
   margin-top: 0;
   padding-top: 18px;
   border-top: 1px solid var(--line);
 }
 
-.advanced summary,
 .debug summary {
   cursor: pointer;
   font-weight: 800;
 }
 
-.speed-row {
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-
-.speed-row input {
-  flex: 1;
-}
-
 .composer {
   display: grid;
   gap: 10px;
+}
+
+.status-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .composer button,

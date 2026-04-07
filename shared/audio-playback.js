@@ -1,4 +1,4 @@
-import { setAudioState } from "./audio-state.js";
+import { setPlaybackState } from "./playback-state.js";
 
 let audioContext = null;
 let activeSource = null;
@@ -92,20 +92,14 @@ async function playRawAudio(rawAudio, token) {
       activeSource.disconnect();
       activeSource = null;
     }
-    setAudioState({
-      phase: "ready",
-      message: "Wiedergabe beendet.",
-      progress: 1,
+    setPlaybackState({
       isPlaying: false,
       isPaused: false,
       error: "",
     });
   };
 
-  setAudioState({
-    phase: "playing",
-    message: "Audio wird abgespielt.",
-    progress: 1,
+  setPlaybackState({
     isPlaying: true,
     isPaused: false,
     error: "",
@@ -123,10 +117,7 @@ async function playHtmlAudio(url, token) {
 
   audio.onended = () => {
     cleanupAudioElement(audio);
-    setAudioState({
-      phase: "ready",
-      message: "Wiedergabe beendet.",
-      progress: 1,
+    setPlaybackState({
       isPlaying: false,
       isPaused: false,
       error: "",
@@ -138,10 +129,7 @@ async function playHtmlAudio(url, token) {
       return;
     }
 
-    setAudioState({
-      phase: "paused",
-      message: "Wiedergabe pausiert.",
-      progress: 1,
+    setPlaybackState({
       isPlaying: false,
       isPaused: true,
       error: "",
@@ -150,10 +138,7 @@ async function playHtmlAudio(url, token) {
 
   audio.onerror = () => {
     cleanupAudioElement(audio);
-    setAudioState({
-      phase: "error",
-      message: "Audio konnte nicht abgespielt werden.",
-      progress: 0,
+    setPlaybackState({
       isPlaying: false,
       isPaused: false,
       error: "HTML audio playback failed.",
@@ -167,10 +152,7 @@ async function playHtmlAudio(url, token) {
     return;
   }
 
-  setAudioState({
-    phase: "playing",
-    message: "Audio wird abgespielt.",
-    progress: 1,
+  setPlaybackState({
     isPlaying: true,
     isPaused: false,
     error: "",
@@ -182,10 +164,7 @@ async function playHtmlAudio(url, token) {
     cleanupAudioElement(audio);
     audio.removeAttribute("src");
     audio.load();
-    setAudioState({
-      phase: "error",
-      message: "Audio konnte nicht abgespielt werden.",
-      progress: 0,
+    setPlaybackState({
       isPlaying: false,
       isPaused: false,
       error: error instanceof Error ? error.message : String(error),
@@ -203,10 +182,7 @@ export async function playGeneratedAudio(rawAudio) {
 export async function playAudioUrl(url) {
   playbackToken += 1;
   const token = playbackToken;
-  setAudioState({
-    phase: "loading",
-    message: "Vorgefertigtes Audio wird geladen.",
-    progress: 1,
+  setPlaybackState({
     isPlaying: false,
     isPaused: false,
     error: "",
@@ -226,10 +202,7 @@ export async function pausePlayback() {
   }
 
   await audioContext.suspend();
-  setAudioState({
-    phase: "paused",
-    message: "Wiedergabe pausiert.",
-    progress: 1,
+  setPlaybackState({
     isPlaying: false,
     isPaused: true,
     error: "",
@@ -239,10 +212,7 @@ export async function pausePlayback() {
 export async function resumePlayback() {
   if (activeAudioElement) {
     await activeAudioElement.play();
-    setAudioState({
-      phase: "playing",
-      message: "Audio wird abgespielt.",
-      progress: 1,
+    setPlaybackState({
       isPlaying: true,
       isPaused: false,
       error: "",
@@ -255,10 +225,7 @@ export async function resumePlayback() {
   }
 
   await audioContext.resume();
-  setAudioState({
-    phase: "playing",
-    message: "Audio wird abgespielt.",
-    progress: 1,
+  setPlaybackState({
     isPlaying: true,
     isPaused: false,
     error: "",
