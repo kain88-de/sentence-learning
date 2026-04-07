@@ -2,7 +2,7 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const repoRoot = process.cwd();
-const htmlFiles = ["index.html", "app/index.html"];
+const htmlFiles = ["index.html", "app/index.html", "app/manage.html"];
 const cssFiles = ["app/style.css"];
 const errors = [];
 
@@ -69,7 +69,7 @@ async function checkAppDirectories() {
   }
 
   for (const appDir of appDirs) {
-    for (const requiredFile of ["index.html", "style.css", "app.js"]) {
+    for (const requiredFile of ["index.html", "manage.html", "style.css", "app.js", "manage.js"]) {
       const relativePath = path.join(appDir, requiredFile);
       if (!(await fileExists(relativePath))) {
         addError(`${appDir}: missing ${requiredFile}.`);
