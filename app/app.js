@@ -1,42 +1,13 @@
-import {
-  PREBUILT_AUDIO_SPEED,
-  loadBuiltinSentences,
-  normalizeSentence,
-  sortSentences,
-} from "../shared/data.js";
-import { addUserSentence, deleteUserSentence, getUserSentences } from "../shared/db.js";
-import {
-  generateSpeech,
-  getSnapshot,
-  pausePlayback,
-  playAudioUrl,
-  playGeneratedAudio,
-  preloadModel,
-  resumePlayback,
-  subscribe,
-} from "../shared/model-tts.js";
+import { allSentences, loadSentenceCollections, playSentenceAudio } from "../shared/app-support.js";
+import { PREBUILT_AUDIO_SPEED } from "../shared/data.js";
+import { getSnapshot, pausePlayback, resumePlayback, subscribe } from "../shared/model-tts.js";
 
-const tabs = [...document.querySelectorAll(".tab")];
-const views = [...document.querySelectorAll("[data-view]")];
-const prepareButton = document.querySelector("#prepare-button");
-const modelSpinner = document.querySelector("#model-spinner");
-const modelStatus = document.querySelector("#model-status");
-const modelProgress = document.querySelector("#model-progress");
-const rateInput = document.querySelector("#rate-input");
-const rateOutput = document.querySelector("#rate-output");
-const randomButton = document.querySelector("#random-button");
 const playButton = document.querySelector("#play-button");
+const randomButton = document.querySelector("#random-button");
 const revealButton = document.querySelector("#reveal-button");
-const promptState = document.querySelector("#prompt-state");
 const revealCard = document.querySelector("#reveal-card");
 const revealedText = document.querySelector("#revealed-text");
-const sentenceForm = document.querySelector("#sentence-form");
-const sentenceInput = document.querySelector("#sentence-input");
-const sentenceCount = document.querySelector("#sentence-count");
-const sentenceList = document.querySelector("#sentence-list");
-const debugCacheSize = document.querySelector("#debug-cache-size");
 
-let currentTab = "practice";
 let builtinSentences = [];
 let userSentences = [];
 let currentSentenceId = null;
@@ -47,28 +18,14 @@ let modelState = getSnapshot();
 let hasInitialized = false;
 const generatedAudio = new Map();
 
-function allSentences() {
-  return sortSentences([...builtinSentences, ...userSentences]);
-}
-
 function currentSentence() {
-  return allSentences().find((sentence) => sentence.id === currentSentenceId) ?? null;
-}
-
-function escapeHtml(text) {
-  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
-function cacheSizeText() {
-  let bytes = 0;
-  for (const entry of generatedAudio.values()) bytes += entry.audio.byteLength;
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  return allSentences(builtinSentences, userSentences).find(
+    (sentence) => sentence.id === currentSentenceId,
+  );
 }
 
 function chooseRandomSentence() {
-  const sentences = allSentences();
+  const sentences = allSentences(builtinSentences, userSentences);
   if (!sentences.length) {
     currentSentenceId = null;
     revealVisible = false;
@@ -83,43 +40,10 @@ function chooseRandomSentence() {
   revealVisible = false;
 }
 
-async function playSentence(sentence) {
-  const speed = Number(rateInput.value);
-  const cached = generatedAudio.get(sentence.id);
-
-  if (cached && cached.speed === speed) {
-    await playGeneratedAudio(cached);
-    return;
-  }
-
-  if (sentence.audioSrc && speed === PREBUILT_AUDIO_SPEED) {
-    await playAudioUrl(sentence.audioSrc);
-    return;
-  }
-
-  const audio = await generateSpeech(sentence.text, { speed });
-  generatedAudio.set(sentence.id, { ...audio, speed });
-  await playGeneratedAudio(audio);
-}
-
-function renderTabs() {
-  for (const tab of tabs) {
-    tab.classList.toggle("active", tab.dataset.tab === currentTab);
-  }
-  for (const view of views) {
-    view.hidden = view.dataset.view !== currentTab;
-  }
-}
-
-function renderPractice() {
+function render() {
   const sentence = currentSentence();
-  const speed = Number(rateInput.value);
   const playLabel = modelState.isPaused || isPlaying ? "Pausieren" : "Abspielen";
 
-  rateOutput.textContent = `${speed.toFixed(2)}x`;
-  promptState.textContent = sentence
-    ? "Höre den Satz an und schreibe ihn auf."
-    : "Füge unter Verwalten einen Satz hinzu, um zu beginnen.";
   playButton.disabled = !sentence || isWorking;
   randomButton.disabled = !sentence || isWorking;
   revealButton.disabled = !sentence;
@@ -131,75 +55,6 @@ function renderPractice() {
   revealCard.classList.toggle("is-revealed", Boolean(sentence && revealVisible));
   revealedText.classList.toggle("is-blurred", !sentence || !revealVisible);
 }
-
-function renderManage() {
-  const sentences = allSentences();
-  sentenceCount.textContent = `${sentences.length} ${sentences.length === 1 ? "Satz" : "Sätze"}`;
-  debugCacheSize.textContent = `Audio-Zwischenspeicher: ${cacheSizeText()}`;
-  modelStatus.textContent = modelState.error
-    ? `${modelState.message} ${modelState.error}`
-    : modelState.message;
-  modelProgress.style.width = `${Math.round((modelState.progress ?? 0) * 100)}%`;
-  modelSpinner.hidden = !(modelState.phase === "loading" || modelState.phase === "generating");
-  prepareButton.disabled = modelState.phase === "loading" || modelState.phase === "generating";
-
-  sentenceList.innerHTML = sentences
-    .map((sentence) => {
-      return `
-        <article class="sentence-row">
-          <div class="sentence-copy">
-            <p>${escapeHtml(sentence.text)}</p>
-            <div class="meta">${sentence.source === "builtin" ? "Vorlage" : "Eigen"}</div>
-          </div>
-          <div class="sentence-actions">
-            <button class="row-action" data-action="play-sentence" data-id="${sentence.id}" type="button">
-              Abspielen
-            </button>
-            ${
-              sentence.source === "user"
-                ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Löschen</button>`
-                : `<span class="meta">Nur lesen</span>`
-            }
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function render() {
-  renderTabs();
-  renderPractice();
-  renderManage();
-}
-
-async function refreshUserSentences() {
-  userSentences = await getUserSentences();
-  if (!currentSentence()) chooseRandomSentence();
-  render();
-}
-
-async function initializeBuiltinSentences() {
-  try {
-    builtinSentences = await loadBuiltinSentences();
-  } catch (error) {
-    builtinSentences = [];
-    console.error(error);
-  }
-}
-
-for (const tab of tabs) {
-  tab.addEventListener("click", () => {
-    currentTab = tab.dataset.tab;
-    render();
-  });
-}
-
-prepareButton.addEventListener("click", async () => {
-  await preloadModel();
-});
-
-rateInput.addEventListener("input", render);
 
 randomButton.addEventListener("click", () => {
   chooseRandomSentence();
@@ -229,7 +84,7 @@ playButton.addEventListener("click", async () => {
   render();
 
   try {
-    await playSentence(sentence);
+    await playSentenceAudio(sentence, PREBUILT_AUDIO_SPEED, generatedAudio);
     isPlaying = true;
   } finally {
     isWorking = false;
@@ -240,46 +95,6 @@ playButton.addEventListener("click", async () => {
 revealButton.addEventListener("click", () => {
   revealVisible = !revealVisible;
   render();
-});
-
-sentenceForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const text = normalizeSentence(sentenceInput.value);
-  if (!text) return;
-
-  await addUserSentence(text);
-  sentenceInput.value = "";
-  await refreshUserSentences();
-});
-
-sentenceList.addEventListener("click", async (event) => {
-  const playButton = event.target.closest("button[data-action='play-sentence']");
-  if (playButton) {
-    const sentence = allSentences().find((entry) => entry.id === playButton.dataset.id);
-    if (!sentence || isWorking) return;
-
-    currentSentenceId = sentence.id;
-    currentTab = "practice";
-    revealVisible = false;
-    isWorking = true;
-    render();
-
-    try {
-      await playSentence(sentence);
-      isPlaying = true;
-    } finally {
-      isWorking = false;
-      render();
-    }
-    return;
-  }
-
-  const button = event.target.closest("button[data-action='delete']");
-  if (!button) return;
-
-  await deleteUserSentence(button.dataset.id);
-  generatedAudio.delete(button.dataset.id);
-  await refreshUserSentences();
 });
 
 subscribe((snapshot) => {
@@ -296,8 +111,7 @@ subscribe((snapshot) => {
   render();
 });
 
+({ builtinSentences, userSentences } = await loadSentenceCollections());
 chooseRandomSentence();
-await initializeBuiltinSentences();
-await refreshUserSentences();
 hasInitialized = true;
 render();

@@ -14,22 +14,18 @@
           <p class="topbar-copy">Höre zu und prüfe danach die Lösung.</p>
         </div>
         <nav class="tabs top-tabs" aria-label="Bereiche">
-          <button class="tab active" data-tab="practice" type="button">Üben</button>
-          <button class="tab" data-tab="manage" type="button">Verwalten</button>
+          <a class="tab active" href="./" aria-current="page">Üben</a>
+          <a class="tab manage-tab" href="./manage.html">Verwalten</a>
         </nav>
       </header>
 
-      <section class="practice-view" data-view="practice">
+      <section class="practice-view">
         <article class="practice-surface">
           <div class="step-strip" aria-hidden="true">
             <span class="step-chip"><strong>1</strong> Hören</span>
             <span class="step-chip"><strong>2</strong> Schreiben</span>
             <span class="step-chip"><strong>3</strong> Prüfen</span>
           </div>
-
-          <p id="prompt-state" class="prompt-state">
-            Höre den Satz an und schreibe ihn auf.
-          </p>
 
           <div class="control-row practice-tools">
             <button
@@ -73,95 +69,6 @@
             <p id="revealed-text" class="revealed-text is-blurred"></p>
           </div>
         </article>
-      </section>
-
-      <section class="panel manage-view" data-view="manage" hidden>
-        <div class="manage-head">
-          <div>
-            <h2>Sätze verwalten</h2>
-            <p>Bereite Audio vor, speichere neue Sätze und behalte deine Sammlung im Blick.</p>
-          </div>
-          <p id="sentence-count" class="count">0 Sätze</p>
-        </div>
-
-        <div class="manage-grid">
-          <div class="manage-main">
-            <section class="manage-section composer-section" aria-labelledby="composer-title">
-              <div class="section-head">
-                <div>
-                  <p class="label">Satzwerkstatt</p>
-                  <h3 id="composer-title">Neuen Satz anlegen</h3>
-                </div>
-                <p class="section-note">Kurz, klar und gut hörbar formulieren.</p>
-              </div>
-
-              <form id="sentence-form" class="composer">
-                <label for="sentence-input">Eigenen Satz hinzufügen</label>
-                <textarea
-                  id="sentence-input"
-                  rows="3"
-                  placeholder="Ich höre den Satz und schreibe ihn ohne auf den Bildschirm zu schauen."
-                ></textarea>
-                <button type="submit">Satz speichern</button>
-              </form>
-            </section>
-
-            <section class="manage-section sentence-library" aria-labelledby="library-title">
-              <div class="section-head">
-                <div>
-                  <p class="label">Sammlung</p>
-                  <h3 id="library-title">Verfügbare Sätze</h3>
-                </div>
-                <p class="section-note">Vorlagen bleiben erhalten, eigene Sätze kannst du löschen.</p>
-              </div>
-              <div id="sentence-list" class="sentence-list" aria-live="polite"></div>
-            </section>
-          </div>
-
-          <aside class="manage-side">
-            <section class="manage-section audio-lab" aria-labelledby="audio-title">
-              <div class="section-head">
-                <div>
-                  <p class="label">Audio</p>
-                  <h3 id="audio-title">Stimme vorbereiten</h3>
-                </div>
-                <p class="section-note">Nur nötig, wenn du eigene Wiedergabe erzeugen möchtest.</p>
-              </div>
-              <div class="audio-status">
-                <div class="status-line">
-                  <span id="model-spinner" class="spinner" hidden></span>
-                  <span id="model-status">Modell ist noch nicht geladen.</span>
-                </div>
-                <div class="progress-track" aria-hidden="true">
-                  <span id="model-progress"></span>
-                </div>
-              </div>
-              <button id="prepare-button" type="button">Modell vorbereiten</button>
-            </section>
-
-            <section class="manage-section tune-section" aria-labelledby="tune-title">
-              <div class="section-head">
-                <div>
-                  <p class="label">Tempo</p>
-                  <h3 id="tune-title">Wiedergabe anpassen</h3>
-                </div>
-              </div>
-              <details class="advanced">
-                <summary>Erweiterte Audioeinstellungen</summary>
-                <div class="speed-row">
-                  <label for="rate-input">Wiedergabegeschwindigkeit</label>
-                  <input id="rate-input" type="range" min="0.55" max="1" step="0.05" value="0.55" />
-                  <span id="rate-output">0.55x</span>
-                </div>
-              </details>
-            </section>
-
-            <details class="debug">
-              <summary>Debug</summary>
-              <p id="debug-cache-size">Audio-Zwischenspeicher: 0 KB</p>
-            </details>
-          </aside>
-        </div>
       </section>
     </main>
     <script type="module" src="./app.js"></script>

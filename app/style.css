@@ -93,12 +93,16 @@ button {
 }
 
 .tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 10px 16px;
   border-radius: 999px;
   background: transparent;
   color: var(--ink);
   font-weight: 700;
   opacity: 0.68;
+  text-decoration: none;
 }
 
 .tab.active {
@@ -107,11 +111,11 @@ button {
   opacity: 1;
 }
 
-.tab[data-tab="manage"] {
+.tab.manage-tab {
   opacity: 0.5;
 }
 
-.tab[data-tab="manage"].active {
+.tab.manage-tab.active {
   opacity: 0.92;
 }
 
@@ -188,20 +192,10 @@ button:disabled {
   font-size: 0.78rem;
 }
 
-.prompt-state {
-  min-height: 58px;
-  max-width: 32rem;
-  margin: 0 auto;
-  text-align: center;
-  font-size: 1.12rem;
-  line-height: 1.5;
-}
-
 .control-row {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 18px;
   flex-wrap: wrap;
 }
 
