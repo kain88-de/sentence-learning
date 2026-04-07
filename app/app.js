@@ -159,21 +159,24 @@ function renderTabs() {
 function renderPractice() {
   const sentence = currentSentence();
   const speed = Number(rateInput.value);
+  const playLabel = modelState.isPaused || isPlaying ? "Pausieren" : "Abspielen";
 
   rateOutput.textContent = `${speed.toFixed(2)}x`;
   promptState.textContent = sentence
     ? isWorking
       ? "Audio wird vorbereitet..."
       : modelState.isPaused
-        ? "Pausiert. Druecke auf Play, wenn du bereit bist."
+        ? "Pausiert. Drücke auf Abspielen, wenn du bereit bist."
         : isPlaying
-          ? "Schreibe auf, was du hoerst, und pruefe es dann unten."
-          : "Druecke auf Play, schreibe den Satz und pruefe ihn dann unten."
-    : "Fuege unter Verwalten einen Satz hinzu, um zu beginnen.";
+          ? "Schreibe auf, was du hörst, und prüfe es dann unten."
+          : "Drücke auf Abspielen, schreibe den Satz und prüfe ihn dann unten."
+    : "Füge unter Verwalten einen Satz hinzu, um zu beginnen.";
   playButton.disabled = !sentence || isWorking;
   revealButton.disabled = !sentence;
-  playButton.textContent = modelState.isPaused || isPlaying ? "❚❚" : "▶";
-  revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Loesung.";
+  playButton.querySelector(".button-icon").textContent =
+    modelState.isPaused || isPlaying ? "❚❚" : "▶";
+  playButton.querySelector(".button-label").textContent = playLabel;
+  revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Lösung.";
   revealCard.classList.toggle("is-revealed", Boolean(sentence && revealVisible));
   revealedText.classList.toggle("is-blurred", !sentence || !revealVisible);
 }
@@ -186,9 +189,9 @@ function renderWords() {
     ? isWorking
       ? "Audio wird vorbereitet..."
       : activeWord
-        ? `Tippe weiter oder decke die Woerter spaeter auf. Zuletzt gehoert: ${activeWord}.`
-        : "Tippe auf ein Feld, hoere das Wort und decke die Woerter spaeter selbst auf."
-    : "Es sind noch keine Woerter verfuegbar.";
+        ? `Tippe weiter oder decke die Wörter später auf. Zuletzt gehört: ${activeWord}.`
+        : "Tippe auf ein Feld, höre das Wort und decke die Wörter später selbst auf."
+    : "Es sind noch keine Wörter verfügbar.";
   wordRandomButton.disabled = !currentWords.length || isWorking;
   wordRevealButton.disabled = !currentWords.length;
   wordGrid.innerHTML = currentWords
@@ -214,7 +217,7 @@ function renderWords() {
 
 function renderManage() {
   const sentences = allSentences();
-  sentenceCount.textContent = `${sentences.length} Satz${sentences.length === 1 ? "" : "e"}`;
+  sentenceCount.textContent = `${sentences.length} ${sentences.length === 1 ? "Satz" : "Sätze"}`;
   debugCacheSize.textContent = `Audio-Zwischenspeicher: ${cacheSizeText()}`;
   modelStatus.textContent = modelState.error
     ? `${modelState.message} ${modelState.error}`
@@ -233,7 +236,7 @@ function renderManage() {
           </div>
           ${
             sentence.source === "user"
-              ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Loeschen</button>`
+              ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Löschen</button>`
               : `<span class="meta">Nur lesen</span>`
           }
         </article>

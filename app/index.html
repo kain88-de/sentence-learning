@@ -3,32 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Schreibuebung</title>
+    <title>Schreibübung</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <main class="deck">
       <nav class="tabs top-tabs" aria-label="Bereiche">
-        <button class="tab active" data-tab="practice" type="button">Ueben</button>
-        <button class="tab" data-tab="words" type="button">Woerter</button>
+        <button class="tab active" data-tab="practice" type="button">Üben</button>
+        <button class="tab" data-tab="words" type="button">Wörter</button>
         <button class="tab" data-tab="manage" type="button">Verwalten</button>
       </nav>
 
       <header class="hero">
-        <h1>Schreibuebung</h1>
-        <p class="intro">Hoere zu, schreibe den Satz auf und decke dann die Loesung auf.</p>
+        <h1>Schreibübung</h1>
+        <p class="intro">Höre zu, schreibe den Satz auf und decke dann die Lösung auf.</p>
       </header>
 
-      <section class="panel practice-view" data-view="practice">
-        <article class="practice-card">
+      <section class="practice-view" data-view="practice">
+        <article class="practice-surface">
           <div class="step-strip" aria-hidden="true">
-            <span class="step-chip">Hoeren</span>
-            <span class="step-chip">Schreiben</span>
-            <span class="step-chip">Aufdecken</span>
+            <span class="step-chip"><strong>1</strong> Hören</span>
+            <span class="step-chip"><strong>2</strong> Schreiben</span>
+            <span class="step-chip"><strong>3</strong> Prüfen</span>
           </div>
 
           <p id="prompt-state" class="prompt-state">
-            Druecke auf Play, schreibe den Satz und pruefe ihn dann unten.
+            Drücke auf Abspielen, schreibe den Satz und prüfe ihn dann unten.
           </p>
 
           <div class="control-row">
@@ -39,16 +39,18 @@
               aria-label="Satz abspielen oder pausieren"
               title="Satz abspielen oder pausieren"
             >
-              ▶
+              <span class="button-icon" aria-hidden="true">▶</span>
+              <span class="button-label">Abspielen</span>
             </button>
             <button
               id="reveal-button"
               class="icon-button clue"
               type="button"
-              aria-label="Loesung deutlich zeigen"
-              title="Loesung deutlich zeigen"
+              aria-label="Lösung deutlich zeigen"
+              title="Lösung deutlich zeigen"
             >
-              ☼
+              <span class="button-icon" aria-hidden="true">☼</span>
+              <span class="button-label">Lösung</span>
             </button>
             <button
               id="random-button"
@@ -57,27 +59,28 @@
               aria-label="Anderen Satz laden"
               title="Anderen Satz laden"
             >
-              ↺
+              <span class="button-icon" aria-hidden="true">↺</span>
+              <span class="button-label">Neu</span>
             </button>
           </div>
 
-          <div id="reveal-card" class="reveal-card">
-            <p class="label">Loesung</p>
+          <div id="reveal-card" class="reveal-panel">
+            <p class="label">Lösung</p>
             <p id="revealed-text" class="revealed-text is-blurred"></p>
           </div>
         </article>
       </section>
 
-      <section class="panel words-view" data-view="words" hidden>
-        <article class="practice-card">
+      <section class="words-view" data-view="words" hidden>
+        <article class="practice-surface">
           <div class="step-strip" aria-hidden="true">
-            <span class="step-chip">Hoeren</span>
-            <span class="step-chip">Merken</span>
-            <span class="step-chip">Aufdecken</span>
+            <span class="step-chip"><strong>1</strong> Hören</span>
+            <span class="step-chip"><strong>2</strong> Merken</span>
+            <span class="step-chip"><strong>3</strong> Prüfen</span>
           </div>
 
           <p id="word-prompt-state" class="prompt-state">
-            Tippe auf ein Feld, hoere das Wort und decke die Woerter spaeter selbst auf.
+            Tippe auf ein Feld, höre das Wort und decke die Wörter später selbst auf.
           </p>
 
           <div id="word-grid" class="word-grid" aria-live="polite"></div>
@@ -87,24 +90,26 @@
               id="word-reveal-button"
               class="icon-button clue"
               type="button"
-              aria-label="Woerter deutlich zeigen"
-              title="Woerter deutlich zeigen"
+              aria-label="Wörter deutlich zeigen"
+              title="Wörter deutlich zeigen"
             >
-              ☼
+              <span class="button-icon" aria-hidden="true">☼</span>
+              <span class="button-label">Wörter</span>
             </button>
             <button
               id="word-random-button"
               class="icon-button next"
               type="button"
-              aria-label="Andere Woerter laden"
-              title="Andere Woerter laden"
+              aria-label="Andere Wörter laden"
+              title="Andere Wörter laden"
             >
-              ↺
+              <span class="button-icon" aria-hidden="true">↺</span>
+              <span class="button-label">Neu</span>
             </button>
           </div>
 
-          <div id="word-reveal-card" class="reveal-card">
-            <p class="label">Woerter</p>
+          <div id="word-reveal-card" class="reveal-panel">
+            <p class="label">Wörter</p>
             <div id="revealed-words" class="revealed-words"></div>
           </div>
         </article>
@@ -113,10 +118,10 @@
       <section class="panel manage-view" data-view="manage" hidden>
         <div class="manage-head">
           <div>
-            <h2>Saetze verwalten</h2>
-            <p>Hier bearbeitest du Saetze und Audioeinstellungen, damit die Uebung einfach bleibt.</p>
+            <h2>Sätze verwalten</h2>
+            <p>Hier bearbeitest du Sätze und Audioeinstellungen, damit die Übung einfach bleibt.</p>
           </div>
-          <p id="sentence-count" class="count">0 Saetze</p>
+          <p id="sentence-count" class="count">0 Sätze</p>
         </div>
 
         <div class="audio-lab">
@@ -143,11 +148,11 @@
         </details>
 
         <form id="sentence-form" class="composer">
-          <label for="sentence-input">Eigenen Satz hinzufuegen</label>
+          <label for="sentence-input">Eigenen Satz hinzufügen</label>
           <textarea
             id="sentence-input"
             rows="3"
-            placeholder="Ich hoere den Satz und schreibe ihn ohne auf den Bildschirm zu schauen."
+            placeholder="Ich höre den Satz und schreibe ihn ohne auf den Bildschirm zu schauen."
           ></textarea>
           <button type="submit">Satz speichern</button>
         </form>
