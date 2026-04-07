@@ -8,15 +8,15 @@
   </head>
   <body>
     <main class="deck">
-      <nav class="tabs top-tabs" aria-label="Bereiche">
-        <button class="tab active" data-tab="practice" type="button">Üben</button>
-        <button class="tab" data-tab="words" type="button">Wörter</button>
-        <button class="tab" data-tab="manage" type="button">Verwalten</button>
-      </nav>
-
-      <header class="hero">
-        <h1>Schreibübung</h1>
-        <p class="intro">Höre zu, schreibe den Satz auf und decke dann die Lösung auf.</p>
+      <header class="topbar">
+        <div class="app-brand">
+          <p class="app-title">Schreibübung</p>
+          <p class="topbar-copy">Höre zu und prüfe danach die Lösung.</p>
+        </div>
+        <nav class="tabs top-tabs" aria-label="Bereiche">
+          <button class="tab active" data-tab="practice" type="button">Üben</button>
+          <button class="tab" data-tab="manage" type="button">Verwalten</button>
+        </nav>
       </header>
 
       <section class="practice-view" data-view="practice">
@@ -28,10 +28,10 @@
           </div>
 
           <p id="prompt-state" class="prompt-state">
-            Drücke auf Abspielen, schreibe den Satz und prüfe ihn dann unten.
+            Höre den Satz an und schreibe ihn auf.
           </p>
 
-          <div class="control-row">
+          <div class="control-row practice-tools">
             <button
               id="play-button"
               class="icon-button play"
@@ -43,74 +43,34 @@
               <span class="button-label">Abspielen</span>
             </button>
             <button
-              id="reveal-button"
-              class="icon-button clue"
-              type="button"
-              aria-label="Lösung deutlich zeigen"
-              title="Lösung deutlich zeigen"
-            >
-              <span class="button-icon" aria-hidden="true">☼</span>
-              <span class="button-label">Lösung</span>
-            </button>
-            <button
               id="random-button"
-              class="icon-button next"
+              class="icon-button quiet"
               type="button"
               aria-label="Anderen Satz laden"
               title="Anderen Satz laden"
             >
               <span class="button-icon" aria-hidden="true">↺</span>
-              <span class="button-label">Neu</span>
+              <span class="button-label">Neuer Satz</span>
             </button>
           </div>
 
           <div id="reveal-card" class="reveal-panel">
-            <p class="label">Lösung</p>
+            <div class="reveal-head">
+              <div>
+                <p class="label">Prüfen</p>
+                <p class="reveal-title">Lösung vergleichen</p>
+              </div>
+              <button
+                id="reveal-button"
+                class="text-action"
+                type="button"
+                aria-label="Lösung deutlich zeigen"
+                title="Lösung deutlich zeigen"
+              >
+                Lösung zeigen
+              </button>
+            </div>
             <p id="revealed-text" class="revealed-text is-blurred"></p>
-          </div>
-        </article>
-      </section>
-
-      <section class="words-view" data-view="words" hidden>
-        <article class="practice-surface">
-          <div class="step-strip" aria-hidden="true">
-            <span class="step-chip"><strong>1</strong> Hören</span>
-            <span class="step-chip"><strong>2</strong> Merken</span>
-            <span class="step-chip"><strong>3</strong> Prüfen</span>
-          </div>
-
-          <p id="word-prompt-state" class="prompt-state">
-            Tippe auf ein Feld, höre das Wort und decke die Wörter später selbst auf.
-          </p>
-
-          <div id="word-grid" class="word-grid" aria-live="polite"></div>
-
-          <div class="control-row">
-            <button
-              id="word-reveal-button"
-              class="icon-button clue"
-              type="button"
-              aria-label="Wörter deutlich zeigen"
-              title="Wörter deutlich zeigen"
-            >
-              <span class="button-icon" aria-hidden="true">☼</span>
-              <span class="button-label">Wörter</span>
-            </button>
-            <button
-              id="word-random-button"
-              class="icon-button next"
-              type="button"
-              aria-label="Andere Wörter laden"
-              title="Andere Wörter laden"
-            >
-              <span class="button-icon" aria-hidden="true">↺</span>
-              <span class="button-label">Neu</span>
-            </button>
-          </div>
-
-          <div id="word-reveal-card" class="reveal-panel">
-            <p class="label">Wörter</p>
-            <div id="revealed-words" class="revealed-words"></div>
           </div>
         </article>
       </section>

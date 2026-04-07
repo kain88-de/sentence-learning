@@ -35,39 +35,16 @@ const sentenceInput = document.querySelector("#sentence-input");
 const sentenceCount = document.querySelector("#sentence-count");
 const sentenceList = document.querySelector("#sentence-list");
 const debugCacheSize = document.querySelector("#debug-cache-size");
-const wordPromptState = document.querySelector("#word-prompt-state");
-const wordGrid = document.querySelector("#word-grid");
-const wordRevealButton = document.querySelector("#word-reveal-button");
-const wordRandomButton = document.querySelector("#word-random-button");
-const wordRevealCard = document.querySelector("#word-reveal-card");
-const revealedWords = document.querySelector("#revealed-words");
-
-const BUILTIN_WORDS = [
-  "Haus",
-  "Baum",
-  "Katze",
-  "Schule",
-  "Sonne",
-  "Blume",
-  "Tisch",
-  "Brot",
-  "Wasser",
-  "Garten",
-  "Apfel",
-  "Lampe",
-];
 
 let currentTab = "practice";
 let builtinSentences = [];
 let userSentences = [];
 let currentSentenceId = null;
 let revealVisible = false;
-let currentWords = [];
-let wordsRevealVisible = false;
-let activeWord = "";
 let isWorking = false;
 let isPlaying = false;
 let modelState = getSnapshot();
+let hasInitialized = false;
 const generatedAudio = new Map();
 
 function allSentences() {
@@ -106,13 +83,6 @@ function chooseRandomSentence() {
   revealVisible = false;
 }
 
-function chooseRandomWords() {
-  const shuffled = [...BUILTIN_WORDS].sort(() => Math.random() - 0.5);
-  currentWords = shuffled.slice(0, 5);
-  wordsRevealVisible = false;
-  activeWord = "";
-}
-
 async function playSentence(sentence) {
   const speed = Number(rateInput.value);
   const cached = generatedAudio.get(sentence.id);
@@ -132,21 +102,6 @@ async function playSentence(sentence) {
   await playGeneratedAudio(audio);
 }
 
-async function playWord(word) {
-  const speed = Number(rateInput.value);
-  const cacheKey = `word:${word}`;
-  const cached = generatedAudio.get(cacheKey);
-
-  if (cached && cached.speed === speed) {
-    await playGeneratedAudio(cached);
-    return;
-  }
-
-  const audio = await generateSpeech(word, { speed });
-  generatedAudio.set(cacheKey, { ...audio, speed });
-  await playGeneratedAudio(audio);
-}
-
 function renderTabs() {
   for (const tab of tabs) {
     tab.classList.toggle("active", tab.dataset.tab === currentTab);
@@ -163,56 +118,18 @@ function renderPractice() {
 
   rateOutput.textContent = `${speed.toFixed(2)}x`;
   promptState.textContent = sentence
-    ? isWorking
-      ? "Audio wird vorbereitet..."
-      : modelState.isPaused
-        ? "Pausiert. Drücke auf Abspielen, wenn du bereit bist."
-        : isPlaying
-          ? "Schreibe auf, was du hörst, und prüfe es dann unten."
-          : "Drücke auf Abspielen, schreibe den Satz und prüfe ihn dann unten."
+    ? "Höre den Satz an und schreibe ihn auf."
     : "Füge unter Verwalten einen Satz hinzu, um zu beginnen.";
   playButton.disabled = !sentence || isWorking;
+  randomButton.disabled = !sentence || isWorking;
   revealButton.disabled = !sentence;
   playButton.querySelector(".button-icon").textContent =
     modelState.isPaused || isPlaying ? "❚❚" : "▶";
   playButton.querySelector(".button-label").textContent = playLabel;
+  revealButton.textContent = revealVisible ? "Lösung ausblenden" : "Lösung zeigen";
   revealedText.textContent = sentence ? sentence.text : "Hier erscheint die Lösung.";
   revealCard.classList.toggle("is-revealed", Boolean(sentence && revealVisible));
   revealedText.classList.toggle("is-blurred", !sentence || !revealVisible);
-}
-
-function renderWords() {
-  const speed = Number(rateInput.value);
-
-  rateOutput.textContent = `${speed.toFixed(2)}x`;
-  wordPromptState.textContent = currentWords.length
-    ? isWorking
-      ? "Audio wird vorbereitet..."
-      : activeWord
-        ? `Tippe weiter oder decke die Wörter später auf. Zuletzt gehört: ${activeWord}.`
-        : "Tippe auf ein Feld, höre das Wort und decke die Wörter später selbst auf."
-    : "Es sind noch keine Wörter verfügbar.";
-  wordRandomButton.disabled = !currentWords.length || isWorking;
-  wordRevealButton.disabled = !currentWords.length;
-  wordGrid.innerHTML = currentWords
-    .map((word, index) => {
-      return `
-        <button class="word-tile" data-action="play-word" data-word="${escapeHtml(word)}" type="button">
-          <span class="word-number">${index + 1}</span>
-          <span class="word-icon">▶</span>
-        </button>
-      `;
-    })
-    .join("");
-  revealedWords.innerHTML = currentWords
-    .map((word) => {
-      return `<span class="revealed-word ${wordsRevealVisible ? "" : "is-blurred"}">${escapeHtml(word)}</span>`;
-    })
-    .join("");
-  wordRevealCard.classList.toggle(
-    "is-revealed",
-    Boolean(currentWords.length && wordsRevealVisible),
-  );
 }
 
 function renderManage() {
@@ -234,11 +151,16 @@ function renderManage() {
             <p>${escapeHtml(sentence.text)}</p>
             <div class="meta">${sentence.source === "builtin" ? "Vorlage" : "Eigen"}</div>
           </div>
-          ${
-            sentence.source === "user"
-              ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Löschen</button>`
-              : `<span class="meta">Nur lesen</span>`
-          }
+          <div class="sentence-actions">
+            <button class="row-action" data-action="play-sentence" data-id="${sentence.id}" type="button">
+              Abspielen
+            </button>
+            ${
+              sentence.source === "user"
+                ? `<button class="delete" data-action="delete" data-id="${sentence.id}" type="button">Löschen</button>`
+                : `<span class="meta">Nur lesen</span>`
+            }
+          </div>
         </article>
       `;
     })
@@ -248,7 +170,6 @@ function renderManage() {
 function render() {
   renderTabs();
   renderPractice();
-  renderWords();
   renderManage();
 }
 
@@ -282,12 +203,6 @@ rateInput.addEventListener("input", render);
 
 randomButton.addEventListener("click", () => {
   chooseRandomSentence();
-  isPlaying = false;
-  render();
-});
-
-wordRandomButton.addEventListener("click", () => {
-  chooseRandomWords();
   isPlaying = false;
   render();
 });
@@ -327,31 +242,6 @@ revealButton.addEventListener("click", () => {
   render();
 });
 
-wordRevealButton.addEventListener("click", () => {
-  wordsRevealVisible = !wordsRevealVisible;
-  render();
-});
-
-wordGrid.addEventListener("click", async (event) => {
-  const button = event.target.closest("button[data-action='play-word']");
-  if (!button) return;
-
-  const word = button.dataset.word;
-  if (!word) return;
-
-  activeWord = word;
-  isWorking = true;
-  render();
-
-  try {
-    await playWord(word);
-    isPlaying = true;
-  } finally {
-    isWorking = false;
-    render();
-  }
-});
-
 sentenceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = normalizeSentence(sentenceInput.value);
@@ -363,6 +253,27 @@ sentenceForm.addEventListener("submit", async (event) => {
 });
 
 sentenceList.addEventListener("click", async (event) => {
+  const playButton = event.target.closest("button[data-action='play-sentence']");
+  if (playButton) {
+    const sentence = allSentences().find((entry) => entry.id === playButton.dataset.id);
+    if (!sentence || isWorking) return;
+
+    currentSentenceId = sentence.id;
+    currentTab = "practice";
+    revealVisible = false;
+    isWorking = true;
+    render();
+
+    try {
+      await playSentence(sentence);
+      isPlaying = true;
+    } finally {
+      isWorking = false;
+      render();
+    }
+    return;
+  }
+
   const button = event.target.closest("button[data-action='delete']");
   if (!button) return;
 
@@ -381,11 +292,12 @@ subscribe((snapshot) => {
   ) {
     isPlaying = false;
   }
+  if (!hasInitialized) return;
   render();
 });
 
 chooseRandomSentence();
-chooseRandomWords();
 await initializeBuiltinSentences();
 await refreshUserSentences();
+hasInitialized = true;
 render();
