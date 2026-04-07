@@ -30,9 +30,9 @@ body {
 }
 
 .deck {
-  width: min(1120px, calc(100% - 48px));
+  width: min(880px, calc(100% - 36px));
   margin: 0 auto;
-  padding: 22px 0 64px;
+  padding: 18px 0 56px;
 }
 
 .back {
@@ -57,8 +57,8 @@ h2 {
 
 h1 {
   max-width: 10ch;
-  font-size: clamp(3.3rem, 8vw, 5.4rem);
-  line-height: 0.9;
+  font-size: clamp(2.9rem, 9vw, 4.6rem);
+  line-height: 0.92;
   letter-spacing: -0.04em;
 }
 
@@ -110,15 +110,15 @@ button {
 }
 
 .hero {
-  max-width: 760px;
-  margin-bottom: 28px;
+  max-width: 620px;
+  margin: 0 auto 24px;
 }
 
 .intro {
-  max-width: 36rem;
-  margin: 14px 0 0;
-  font-size: 1.22rem;
-  line-height: 1.55;
+  max-width: 28rem;
+  margin: 12px 0 0;
+  font-size: 1.08rem;
+  line-height: 1.5;
 }
 
 .tab.active {
@@ -148,8 +148,8 @@ button:disabled {
 
 .panel,
 .practice-surface {
-  padding: 32px;
-  border-radius: 32px;
+  padding: 26px;
+  border-radius: 28px;
   border: 1px solid var(--line);
   background: var(--paper);
   box-shadow: var(--shadow);
@@ -181,10 +181,10 @@ button:disabled {
 }
 
 .practice-surface {
-  max-width: 760px;
+  max-width: 680px;
   margin: 0 auto;
-  padding: 34px;
-  border-radius: 30px;
+  padding: 28px;
+  border-radius: 28px;
   background: linear-gradient(180deg, var(--panel-strong) 0%, rgba(255, 253, 247, 0.94) 100%);
   border: 1px solid rgba(36, 48, 67, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -282,12 +282,12 @@ button:disabled {
 }
 
 .prompt-state {
-  min-height: 72px;
-  max-width: 34rem;
+  min-height: 64px;
+  max-width: 26rem;
   margin: 0 auto;
   text-align: center;
-  font-size: 1.18rem;
-  line-height: 1.6;
+  font-size: 1.08rem;
+  line-height: 1.55;
 }
 
 .control-row {
@@ -301,10 +301,10 @@ button:disabled {
   gap: 6px;
   justify-items: center;
   align-content: center;
-  min-width: 130px;
-  min-height: 88px;
-  padding: 14px 18px;
-  border-radius: 24px;
+  min-width: 122px;
+  min-height: 84px;
+  padding: 12px 16px;
+  border-radius: 22px;
   font-size: 1rem;
   line-height: 1;
   box-shadow: 0 12px 28px rgba(232, 111, 71, 0.14);
@@ -337,9 +337,9 @@ button:disabled {
 
 .reveal-panel {
   min-height: 128px;
-  margin-top: 24px;
-  padding: 20px 22px;
-  border-radius: 24px;
+  margin-top: 22px;
+  padding: 18px 20px;
+  border-radius: 22px;
   background: var(--panel);
   border: 1px solid rgba(39, 48, 67, 0.08);
 }
@@ -383,6 +383,77 @@ button:disabled {
   background: linear-gradient(90deg, var(--accent-2) 0%, var(--accent) 100%);
 }
 
+.manage-head {
+  align-items: end;
+}
+
+.count {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.manage-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 22px;
+  align-items: start;
+}
+
+.manage-main,
+.manage-side {
+  display: grid;
+  gap: 18px;
+}
+
+.manage-side {
+  position: static;
+}
+
+.manage-section {
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.section-head h3 {
+  margin: 0;
+  font-size: 1.28rem;
+  line-height: 1.08;
+}
+
+.section-note {
+  max-width: none;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  text-align: left;
+}
+
+.audio-lab {
+  display: grid;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.audio-status {
+  display: grid;
+  gap: 10px;
+}
+
 .spinner {
   width: 16px;
   height: 16px;
@@ -394,8 +465,9 @@ button:disabled {
 
 .advanced,
 .debug {
-  padding-top: 20px;
+  padding-top: 18px;
   border-top: 1px solid var(--line);
+  margin-top: 0;
 }
 
 .advanced summary,
@@ -406,6 +478,7 @@ button:disabled {
 
 .speed-row {
   margin-top: 14px;
+  flex-wrap: wrap;
 }
 
 .speed-row input {
@@ -430,12 +503,12 @@ textarea {
 .sentence-list {
   display: grid;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .sentence-row {
-  padding: 18px 20px;
-  border-radius: 22px;
+  padding: 16px 18px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid var(--line);
 }
@@ -455,30 +528,27 @@ textarea {
   }
 }
 
-@media (max-width: 1100px) {
+@media (min-width: 1080px) {
   .deck {
-    width: min(100%, calc(100% - 32px));
+    width: min(980px, calc(100% - 48px));
   }
 
   h1 {
-    font-size: clamp(3rem, 8vw, 4.8rem);
+    font-size: clamp(3.2rem, 7vw, 4.9rem);
   }
 
-  .hero {
-    margin-bottom: 22px;
+  .manage-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.82fr);
   }
 
-  .panel {
-    padding: 26px;
+  .manage-side {
+    position: sticky;
+    top: 18px;
   }
 
-  .practice-surface {
-    max-width: 100%;
-    padding: 28px;
-  }
-
-  .word-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+  .section-note {
+    max-width: 22ch;
+    text-align: right;
   }
 }
 
@@ -492,16 +562,20 @@ textarea {
   }
 
   .intro {
-    max-width: 32rem;
-    font-size: 1.08rem;
+    max-width: 26rem;
+    font-size: 1rem;
   }
 
   .panel {
     padding: 22px;
   }
 
+  .section-head {
+    flex-direction: column;
+  }
+
   .practice-surface {
-    padding: 24px;
+    padding: 24px 22px;
   }
 
   .word-grid {
@@ -512,15 +586,15 @@ textarea {
 @media (max-width: 780px) {
   .deck {
     width: calc(100% - 24px);
-    padding-top: 16px;
+    padding-top: 14px;
   }
 
   h1 {
-    font-size: clamp(2.8rem, 14vw, 4.2rem);
+    font-size: clamp(2.6rem, 14vw, 3.9rem);
   }
 
   .intro {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
   }
 
   .manage-head,
@@ -530,16 +604,25 @@ textarea {
     align-items: stretch;
   }
 
+  .count {
+    width: fit-content;
+  }
+
+  .manage-section {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
   .panel,
   .practice-surface {
-    padding: 22px;
-    border-radius: 26px;
+    padding: 20px 18px;
+    border-radius: 24px;
   }
 
   .icon-button {
-    min-width: 108px;
-    min-height: 80px;
-    padding: 12px 14px;
+    min-width: 104px;
+    min-height: 78px;
+    padding: 12px;
   }
 
   .word-grid,
