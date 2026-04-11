@@ -4,7 +4,7 @@
 
 This repository contains a static browser-based German dictation practice app for children.
 The publishable site lives in `site/`.
-The page entry points live in `site/` and depend on shared browser-side modules in `site/shared/`.
+The page entry points live in `site/` and depend on browser-side modules in `site/lib/`.
 
 ## Repo Map
 
@@ -14,9 +14,9 @@ The page entry points live in `site/` and depend on shared browser-side modules 
 - `site/app.js`: practice page behavior
 - `site/manage.js`: manage page behavior
 - `site/style.css`: shared page styles
-- `site/shared/`: text-to-speech playback, sentence data loading, and IndexedDB helpers
-- `site/audio/`: pre-generated built-in WAV files for sample sentences
-- `site/data/`: built-in sentence source text
+- `site/lib/`: text-to-speech playback, sentence loading, and IndexedDB helpers
+- `site/assets/audio/`: pre-generated built-in WAV files for sample sentences
+- `site/assets/data/`: built-in sentence source text
 - `scripts/`: static checks and audio generation helpers
 
 ## Local Development
@@ -70,7 +70,7 @@ bun run build:audio
 ## Project Constraints
 
 - Keep the app fully static. Do not introduce a server dependency unless explicitly requested.
-- Built-in audio in `site/audio/` must stay aligned with `PREBUILT_AUDIO_SPEED` in `site/shared/data.js`.
+- Built-in audio in `site/assets/audio/` must stay aligned with `PREBUILT_AUDIO_SPEED` in `site/lib/builtin-sentences.js`.
 - If you change built-in sentence text or the prebuilt speed, regenerate the WAV files.
 - IndexedDB behavior should be tested through a local server, not `file://`.
 - Preserve the current lightweight structure unless there is a clear reason to add framework tooling.
@@ -89,10 +89,11 @@ bun run build:audio
 - Keep page-level modules thin:
   - `site/app.js` owns the practice page only
   - `site/manage.js` owns the manage page only
-- Put cross-page browser modules in `site/shared/`, not the page entry modules.
+- Put cross-page browser modules in `site/lib/`, not the page entry modules.
 - Split responsibilities by concern, not by feature label:
-  - sentence loading and sentence helpers in `site/shared/`
-  - model download and synthesis worker orchestration in `site/shared/model-tts.js`
+  - built-in sentence loading in `site/lib/builtin-sentences.js`
+  - sentence persistence in `site/lib/sentences.js`
+  - model download and synthesis worker orchestration in `site/lib/model-tts.js`
   - playback transport and playback state in a separate playback module
 - Do not let UI code depend on human-readable status text such as `"Wiedergabe beendet."` for logic.
 - UI state decisions must be based on stable fields like:
@@ -105,7 +106,7 @@ bun run build:audio
   - audio playback
   - sentence persistence
   - page rendering
-- If a helper is shared by both pages, place it in `site/shared/` and give it a concern-based name.
+- If a helper is shared by both pages, place it in `site/lib/` and give it a concern-based name.
 - Prefer normal page navigation over hiding whole screens behind client-side tab state when the screens have different responsibilities.
 
 ## Current Default

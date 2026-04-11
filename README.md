@@ -19,8 +19,8 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 - [site/](/home/max/code/learning/site) - publishable static site root
 - [site/index.html](/home/max/code/learning/site/index.html) - practice page entry point
 - [site/manage.html](/home/max/code/learning/site/manage.html) - manage page
-- [site/shared/](/home/max/code/learning/site/shared) - shared TTS, data, and storage logic
-- [site/audio/](/home/max/code/learning/site/audio) - built-in audio files
+- [site/lib/](/home/max/code/learning/site/lib) - browser-side modules
+- [site/assets/](/home/max/code/learning/site/assets) - built-in audio and sentence source files
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
 
 ## Run Locally
@@ -62,7 +62,7 @@ just serve
 Run checks:
 
 ```bash
-npx biome check site/*.js site/*.html site/*.css site/shared
+npx biome check site/*.js site/*.html site/*.css site/lib
 node scripts/check-static-site.mjs
 ```
 
