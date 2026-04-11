@@ -2,12 +2,13 @@ import * as esbuild from "esbuild";
 import path from "node:path";
 
 const repoRoot = process.cwd();
+const siteRoot = path.join(repoRoot, "site");
 const entryPoints = ["app/app.js", "app/manage.js"].map((entryPoint) =>
-  path.join(repoRoot, entryPoint),
+  path.join(siteRoot, entryPoint),
 );
 
 await esbuild.build({
-  absWorkingDir: repoRoot,
+  absWorkingDir: siteRoot,
   bundle: true,
   entryPoints,
   format: "esm",

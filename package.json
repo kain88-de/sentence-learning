@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "biome check app shared",
-    "format": "biome format --write app shared",
+    "lint": "biome check site/app site/shared",
+    "format": "biome format --write site/app site/shared",
     "check:site": "node scripts/check-static-site.mjs",
     "check:modules": "node scripts/check-module-graph.mjs",
     "check:smoke": "node scripts/check-browser-smoke.mjs",

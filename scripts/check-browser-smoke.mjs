@@ -4,6 +4,7 @@ import { readFile, stat } from "node:fs/promises";
 import { chromium } from "playwright";
 
 const repoRoot = process.cwd();
+const siteRoot = path.join(repoRoot, "site");
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
@@ -24,9 +25,9 @@ function resolveRequestPath(urlPath) {
     relativePath = "/index.html";
   }
 
-  const absolutePath = path.join(repoRoot, relativePath);
+  const absolutePath = path.join(siteRoot, relativePath);
   const normalizedPath = path.normalize(absolutePath);
-  if (!normalizedPath.startsWith(repoRoot)) {
+  if (!normalizedPath.startsWith(siteRoot)) {
     return null;
   }
 

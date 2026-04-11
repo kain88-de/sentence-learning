@@ -6,10 +6,10 @@ import { env, pipeline } from "@huggingface/transformers";
 import {
   PREBUILT_AUDIO_SPEED,
   loadBuiltinSentencesForBuild,
-} from "../shared/data.js";
+} from "../site/shared/data.js";
 
 const repoRoot = process.cwd();
-const audioDir = path.join(repoRoot, "audio");
+const audioDir = path.join(repoRoot, "site/audio");
 const modelId = "Xenova/mms-tts-deu";
 
 env.allowRemoteModels = true;
