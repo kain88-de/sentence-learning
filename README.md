@@ -1,5 +1,7 @@
 # Writing Practice
 
+[![Validation](https://github.com/kain88-de/sentence-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/kain88-de/sentence-learning/actions/workflows/ci.yml)
+
 A simple browser-based writing practice app for children. The app plays slow German sentences, lets the learner write them down on paper, and reveals the answer with a blur-to-clear check step.
 
 ## Features
