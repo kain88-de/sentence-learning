@@ -1,3 +1,4 @@
+import { PREBUILT_AUDIO_SPEED } from "./builtin-sentences.js";
 import { setModelStatus } from "./model-status.js";
 
 let worker = null;
@@ -76,7 +77,11 @@ export async function generateSpeech(text) {
     error: "",
   });
 
-  const payload = await runWorkerCommand({ command: "generate", text, speed: 0.55 });
+  const payload = await runWorkerCommand({
+    command: "generate",
+    text,
+    speed: PREBUILT_AUDIO_SPEED,
+  });
   setModelStatus({
     phase: "ready",
     message: "Audio ist bereit zur Wiedergabe.",

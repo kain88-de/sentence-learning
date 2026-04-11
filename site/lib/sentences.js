@@ -1,6 +1,12 @@
 import { loadBuiltinSentences, normalizeSentence, sortSentences } from "./builtin-sentences.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "./db.js";
-import { hashText } from "./hash.js";
+
+const _encoder = new TextEncoder();
+async function hashText(text) {
+  const bytes = _encoder.encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((v) => v.toString(16).padStart(2, "0")).join("");
+}
 
 export async function loadSentenceCollections() {
   let builtinSentences = [];

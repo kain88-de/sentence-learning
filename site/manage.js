@@ -1,18 +1,17 @@
-import { escapeHtml } from "./lib/html.js";
+import { playSentence } from "./lib/audio-playback.js";
+import { deleteUserAudio, putUserAudio } from "./lib/db.js";
 import { getModelStatusSnapshot, subscribeModelStatus } from "./lib/model-status.js";
-import { preloadModel } from "./lib/model-tts.js";
-import {
-  deleteSentenceAudio,
-  ensureUserSentenceAudio,
-  getUserAudioUsageText,
-  playSentence,
-} from "./lib/sentence-playback.js";
+import { generateSpeech, preloadModel } from "./lib/model-tts.js";
 import {
   allSentences,
   createUserSentence,
   loadSentenceCollections,
   removeUserSentence,
 } from "./lib/sentences.js";
+
+function escapeHtml(text) {
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
 
 const prepareButton = document.querySelector("#prepare-button");
 const modelSpinner = document.querySelector("#model-spinner");
@@ -22,7 +21,6 @@ const sentenceForm = document.querySelector("#sentence-form");
 const sentenceInput = document.querySelector("#sentence-input");
 const sentenceCount = document.querySelector("#sentence-count");
 const sentenceList = document.querySelector("#sentence-list");
-const debugCacheSize = document.querySelector("#debug-cache-size");
 const composerStatus = document.querySelector("#composer-status");
 
 let builtinSentences = [];
@@ -70,7 +68,6 @@ function render() {
 
 async function refreshSentences() {
   ({ builtinSentences, userSentences } = await loadSentenceCollections());
-  debugCacheSize.textContent = `Gespeicherte Audiodaten: ${await getUserAudioUsageText()}`;
   render();
 }
 
@@ -98,7 +95,15 @@ sentenceForm.addEventListener("submit", async (event) => {
     render();
 
     try {
-      await ensureUserSentenceAudio(sentence);
+      const generated = await generateSpeech(sentence.text);
+      await putUserAudio({
+        key: sentence.audioKey,
+        sentenceId: sentence.id,
+        text: sentence.text,
+        audio: generated.audio,
+        samplingRate: generated.sampling_rate,
+        createdAt: Date.now(),
+      });
     } catch (error) {
       await removeUserSentence(sentence.id);
       throw error;
@@ -150,7 +155,7 @@ sentenceList.addEventListener("click", async (event) => {
 
   try {
     await removeUserSentence(sentence.id);
-    await deleteSentenceAudio(sentence);
+    await deleteUserAudio(sentence.audioKey);
     currentStatus = "Satz gelöscht.";
     await refreshSentences();
   } finally {

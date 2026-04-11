@@ -1,26 +1,14 @@
 export const PREBUILT_AUDIO_SPEED = 0.55;
 
-const BUILTIN_SENTENCES_FILE = new URL("../assets/data/builtin-sentences.txt", import.meta.url);
+const BUILTIN_SENTENCES_FILE = new URL("../assets/data/builtin-sentences.json", import.meta.url);
 
-function audioUrl(fileName) {
-  return new URL(`../assets/audio/${fileName}`, import.meta.url).href;
-}
-
-function parseBuiltinLines(content, { idPrefix, filePrefix }) {
-  return content
-    .split(/\r?\n/)
-    .map((line) => normalizeSentence(line))
-    .filter((line) => line && !line.startsWith("#"))
-    .map((text, index) => ({
-      id: `${idPrefix}-${index + 1}`,
-      text,
-      source: "builtin",
-      audioSrc: audioUrl(`${filePrefix}-${index + 1}.wav`),
-    }));
-}
-
-function parseBuiltinSentenceLines(content) {
-  return parseBuiltinLines(content, { idPrefix: "builtin", filePrefix: "builtin" });
+function normalizeBuiltinSentenceEntries(entries) {
+  return entries.map((entry) => ({
+    id: entry.id,
+    text: normalizeSentence(entry.text),
+    source: "builtin",
+    audioSrc: new URL(entry.audioSrc, import.meta.url).href,
+  }));
 }
 
 export async function loadBuiltinSentences() {
@@ -29,12 +17,7 @@ export async function loadBuiltinSentences() {
     throw new Error(`Failed to load built-in sentences: ${response.status}`);
   }
 
-  return parseBuiltinSentenceLines(await response.text());
-}
-
-export async function loadBuiltinSentencesForBuild(readFile) {
-  const content = await readFile(BUILTIN_SENTENCES_FILE, "utf8");
-  return parseBuiltinSentenceLines(content);
+  return normalizeBuiltinSentenceEntries(await response.json());
 }
 
 export function normalizeSentence(text) {

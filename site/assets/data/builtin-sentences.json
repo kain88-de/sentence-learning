@@ -1,0 +1,42 @@
+[
+  {
+    "id": "builtin-1",
+    "text": "Gabi mag Gurke und gute Limo.",
+    "audioSrc": "../assets/audio/builtin-1.wav"
+  },
+  {
+    "id": "builtin-2",
+    "text": "Alle Kinder kommen aus der Schule.",
+    "audioSrc": "../assets/audio/builtin-2.wav"
+  },
+  {
+    "id": "builtin-3",
+    "text": "Wer will einen Fisch essen?",
+    "audioSrc": "../assets/audio/builtin-3.wav"
+  },
+  {
+    "id": "builtin-4",
+    "text": "Der Bub isst ein Brot mit Butter.",
+    "audioSrc": "../assets/audio/builtin-4.wav"
+  },
+  {
+    "id": "builtin-5",
+    "text": "Ein Kind will Nuesse essen.",
+    "audioSrc": "../assets/audio/builtin-5.wav"
+  },
+  {
+    "id": "builtin-6",
+    "text": "Mama und ich teilen ein Eis.",
+    "audioSrc": "../assets/audio/builtin-6.wav"
+  },
+  {
+    "id": "builtin-7",
+    "text": "Das ist der rote Schirm.",
+    "audioSrc": "../assets/audio/builtin-7.wav"
+  },
+  {
+    "id": "builtin-8",
+    "text": "Mama und Nina sind im Wald.",
+    "audioSrc": "../assets/audio/builtin-8.wav"
+  }
+]

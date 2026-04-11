@@ -3,8 +3,11 @@ const DB_VERSION = 2;
 const USER_SENTENCE_STORE = "user-sentences";
 const USER_AUDIO_STORE = "user-audio";
 
+let dbPromise = null;
+
 function openDb() {
-  return new Promise((resolve, reject) => {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = () => {
@@ -24,6 +27,7 @@ function openDb() {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
+  return dbPromise;
 }
 
 async function runRequest(storeName, mode, callback) {
@@ -63,8 +67,4 @@ export async function putUserAudio(record) {
 
 export async function deleteUserAudio(key) {
   await runRequest(USER_AUDIO_STORE, "readwrite", (store) => store.delete(key));
-}
-
-export async function getAllUserAudio() {
-  return runRequest(USER_AUDIO_STORE, "readonly", (store) => store.getAll());
 }

@@ -16,7 +16,8 @@ The page entry points live in `site/` and depend on browser-side modules in `sit
 - `site/style.css`: shared page styles
 - `site/lib/`: text-to-speech playback, sentence loading, and IndexedDB helpers
 - `site/assets/audio/`: generated built-in WAV files for sample sentences
-- `site/assets/data/`: built-in sentence source text
+- `site/assets/data/`: built-in sentence manifest
+- `sentences.txt`: source of truth for built-in sentences
 - `scripts/`: static checks and audio generation helpers
 
 ## Local Development
@@ -71,6 +72,7 @@ bun run build:audio
 
 - Keep the app fully static. Do not introduce a server dependency unless explicitly requested.
 - Built-in audio in `site/assets/audio/` must stay aligned with `PREBUILT_AUDIO_SPEED` in `site/lib/builtin-sentences.js`.
+- `site/assets/data/builtin-sentences.json` is generated from `sentences.txt` by the audio build step.
 - The built-in WAV files are generated during GitHub Pages deploy and may not be present in a fresh checkout until `bun run build:audio` is run.
 - If you change built-in sentence text or the prebuilt speed, regenerate the WAV files.
 - IndexedDB behavior should be tested through a local server, not `file://`.

@@ -1,6 +1,5 @@
-import { pausePlayback, resumePlayback } from "./lib/audio-playback.js";
+import { pausePlayback, playSentence, resumePlayback } from "./lib/audio-playback.js";
 import { getPlaybackSnapshot, subscribePlaybackState } from "./lib/playback-state.js";
-import { playSentence } from "./lib/sentence-playback.js";
 import { allSentences, loadSentenceCollections } from "./lib/sentences.js";
 
 const playButton = document.querySelector("#play-button");
