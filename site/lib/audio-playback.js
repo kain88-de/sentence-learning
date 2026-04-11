@@ -1,3 +1,4 @@
+import { getUserAudio } from "./db.js";
 import { setPlaybackState } from "./playback-state.js";
 
 let audioContext = null;
@@ -229,5 +230,37 @@ export async function resumePlayback() {
     isPlaying: true,
     isPaused: false,
     error: "",
+  });
+}
+
+function assertNoHashCollision(audioKey, existing, sentence) {
+  if (existing.sentenceId !== sentence.id || existing.text !== sentence.text) {
+    console.warn("Audio hash collision detected.", {
+      audioKey,
+      storedSentenceId: existing.sentenceId,
+      requestedSentenceId: sentence.id,
+      storedText: existing.text,
+      requestedText: sentence.text,
+    });
+    throw new Error("Audio hash collision detected.");
+  }
+}
+
+export async function playSentence(sentence) {
+  if (sentence.source === "builtin") {
+    await playAudioUrl(sentence.audioSrc);
+    return;
+  }
+
+  const record = await getUserAudio(sentence.audioKey);
+  if (!record) {
+    throw new Error("Stored audio for this sentence is missing.");
+  }
+
+  assertNoHashCollision(sentence.audioKey, record, sentence);
+
+  await playGeneratedAudio({
+    audio: record.audio,
+    sampling_rate: record.samplingRate,
   });
 }

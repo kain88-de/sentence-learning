@@ -91,8 +91,7 @@ for (const entry of builtInEntries) {
 }
 
 for (const fileName of await readdir(audioDir)) {
-  const isBuiltInAudio =
-    /^builtin(?:-word)?-\d+\.wav$/u.test(fileName);
+  const isBuiltInAudio = /^builtin-\d+\.wav$/u.test(fileName);
 
   if (isBuiltInAudio && !expectedFileNames.has(fileName)) {
     await rm(path.join(audioDir, fileName), { force: true });

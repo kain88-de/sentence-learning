@@ -1,28 +1,7 @@
-const listeners = new Set();
-const state = {
-  isPlaying: false,
-  isPaused: false,
-  error: "",
-};
+import { createStore } from "./store.js";
 
-function notify() {
-  const snapshot = getPlaybackSnapshot();
-  for (const listener of listeners) {
-    listener(snapshot);
-  }
-}
+const store = createStore({ isPlaying: false, isPaused: false, error: "" });
 
-export function setPlaybackState(patch) {
-  Object.assign(state, patch);
-  notify();
-}
-
-export function getPlaybackSnapshot() {
-  return { ...state };
-}
-
-export function subscribePlaybackState(listener) {
-  listeners.add(listener);
-  listener(getPlaybackSnapshot());
-  return () => listeners.delete(listener);
-}
+export const setPlaybackState = (patch) => store.set(patch);
+export const getPlaybackSnapshot = () => store.get();
+export const subscribePlaybackState = (fn) => store.subscribe(fn);
