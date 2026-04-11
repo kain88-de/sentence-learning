@@ -9,7 +9,7 @@ import {
 } from "../site/shared/data.js";
 
 const repoRoot = process.cwd();
-const audioDir = path.join(repoRoot, "site/audio");
+const audioDir = path.join(repoRoot, "site/assets/audio");
 const modelId = "Xenova/mms-tts-deu";
 
 env.allowRemoteModels = true;
