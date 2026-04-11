@@ -2,6 +2,7 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const repoRoot = process.cwd();
+const siteRoot = path.join(repoRoot, "site");
 const htmlFiles = ["index.html", "app/index.html", "app/manage.html"];
 const cssFiles = ["app/style.css"];
 const errors = [];
@@ -12,7 +13,7 @@ function addError(message) {
 
 async function fileExists(relativePath) {
   try {
-    await access(path.join(repoRoot, relativePath));
+    await access(path.join(siteRoot, relativePath));
     return true;
   } catch {
     return false;
@@ -20,7 +21,7 @@ async function fileExists(relativePath) {
 }
 
 async function checkHtmlFile(relativePath) {
-  const absolutePath = path.join(repoRoot, relativePath);
+  const absolutePath = path.join(siteRoot, relativePath);
   const html = await readFile(absolutePath, "utf8");
 
   if (!html.includes("<!doctype html>")) {
@@ -47,7 +48,7 @@ async function checkHtmlFile(relativePath) {
 }
 
 async function checkCssFile(relativePath) {
-  const absolutePath = path.join(repoRoot, relativePath);
+  const absolutePath = path.join(siteRoot, relativePath);
   const css = await readFile(absolutePath, "utf8");
 
   const openBraces = (css.match(/\{/g) ?? []).length;
@@ -58,7 +59,7 @@ async function checkCssFile(relativePath) {
 }
 
 async function checkAppDirectories() {
-  const entries = await readdir(repoRoot, { withFileTypes: true });
+  const entries = await readdir(siteRoot, { withFileTypes: true });
   const appDirs = entries
     .filter((entry) => entry.isDirectory() && entry.name === "app")
     .map((entry) => entry.name)

@@ -3,15 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "biome check app shared",
-    "format": "biome format --write app shared",
+    "lint": "biome check site/app site/shared",
+    "format": "biome format --write site/app site/shared",
     "check:site": "node scripts/check-static-site.mjs",
     "check:modules": "node scripts/check-module-graph.mjs",
     "check:smoke": "node scripts/check-browser-smoke.mjs",
     "check": "bun run lint && bun run check:site && bun run check:modules && bun run check:smoke",
-    "build:audio": "bun run scripts/pregenerate-audio.mjs",
-    "hooks:install": "PREK_HOME=/tmp/prek prek install",
-    "hooks:run": "PREK_HOME=/tmp/prek prek run --all-files"
+    "build:audio": "bun run scripts/pregenerate-audio.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
