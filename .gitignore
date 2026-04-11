@@ -1,3 +1,4 @@
 node_modules/
 .DS_Store
 .cache/
+site/assets/audio/*.wav

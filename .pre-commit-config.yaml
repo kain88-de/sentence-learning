@@ -6,9 +6,9 @@ repos:
         files: ^\.github/workflows/.*\.ya?ml$
   - repo: local
     hooks:
-      - id: bun-check
-        name: bun run check
-        entry: bun run check
+      - id: bun-fix
+        name: bun run fix
+        entry: bun run fix
         language: system
         pass_filenames: false
         stages: [pre-commit]

@@ -1,9 +1,9 @@
 export const PREBUILT_AUDIO_SPEED = 0.55;
 
-const BUILTIN_SENTENCES_FILE = new URL("../data/builtin-sentences.txt", import.meta.url);
+const BUILTIN_SENTENCES_FILE = new URL("../assets/data/builtin-sentences.txt", import.meta.url);
 
 function audioUrl(fileName) {
-  return new URL(`../audio/${fileName}`, import.meta.url).href;
+  return new URL(`../assets/audio/${fileName}`, import.meta.url).href;
 }
 
 function parseBuiltinLines(content, { idPrefix, filePrefix }) {

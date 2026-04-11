@@ -1,4 +1,4 @@
-import { loadBuiltinSentences, normalizeSentence, sortSentences } from "./data.js";
+import { loadBuiltinSentences, normalizeSentence, sortSentences } from "./builtin-sentences.js";
 import { addUserSentence, deleteUserSentence, getUserSentences } from "./db.js";
 import { hashText } from "./hash.js";
 

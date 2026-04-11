@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "biome check site/app site/shared",
-    "format": "biome format --write site/app site/shared",
+    "lint": "biome check site/*.js site/*.html site/*.css site/lib",
+    "fix": "biome check --write site/*.js site/*.html site/*.css site/lib",
+    "format": "biome format --write site/*.js site/*.html site/*.css site/lib",
     "check:site": "node scripts/check-static-site.mjs",
     "check:modules": "node scripts/check-module-graph.mjs",
     "check:smoke": "node scripts/check-browser-smoke.mjs",
@@ -12,7 +13,7 @@
     "build:audio": "bun run scripts/pregenerate-audio.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "2.0.6",
     "esbuild": "^0.28.0",
     "playwright": "^1.59.1"
   },

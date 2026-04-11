@@ -92,7 +92,7 @@ async function assertNoRuntimeErrors(label) {
   }
 }
 
-await page.goto(`${baseUrl}/app/`, { waitUntil: "domcontentloaded" });
+await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(300);
 await assertNoRuntimeErrors("practice");
 
@@ -109,7 +109,7 @@ if (!practiceState.revealText) {
   throw new Error("practice: expected a built-in sentence to be loaded into the reveal area.");
 }
 
-await page.goto(`${baseUrl}/app/manage.html`, { waitUntil: "domcontentloaded" });
+await page.goto(`${baseUrl}/manage.html`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(300);
 await assertNoRuntimeErrors("manage");
 

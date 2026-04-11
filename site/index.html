@@ -2,27 +2,75 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=./app/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Schreibuebung</title>
-    <style>
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        font-family: Verdana, sans-serif;
-        background: linear-gradient(180deg, #fff8ef 0%, #ffefd8 100%);
-        color: #273043;
-      }
-
-      a {
-        color: #ef7d57;
-        font-weight: 700;
-      }
-    </style>
+    <title>Schreibübung</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <p>Oeffne <a href="./app/">Schreibuebung</a>.</p>
+    <main class="deck">
+      <header class="topbar">
+        <div class="app-brand">
+          <p class="app-title">Schreibübung</p>
+          <p class="topbar-copy">Höre zu und prüfe danach die Lösung.</p>
+        </div>
+        <nav class="tabs top-tabs" aria-label="Bereiche">
+          <a class="tab active" href="./" aria-current="page">Üben</a>
+          <a class="tab manage-tab" href="./manage.html">Verwalten</a>
+        </nav>
+      </header>
+
+      <section class="practice-view">
+        <article class="practice-surface">
+          <div class="step-strip" aria-hidden="true">
+            <span class="step-chip"><strong>1</strong> Hören</span>
+            <span class="step-chip"><strong>2</strong> Schreiben</span>
+            <span class="step-chip"><strong>3</strong> Prüfen</span>
+          </div>
+
+          <div class="control-row practice-tools">
+            <button
+              id="play-button"
+              class="icon-button play"
+              type="button"
+              aria-label="Satz abspielen oder pausieren"
+              title="Satz abspielen oder pausieren"
+            >
+              <span class="button-icon" aria-hidden="true">▶</span>
+              <span class="button-label">Abspielen</span>
+            </button>
+            <button
+              id="random-button"
+              class="icon-button quiet"
+              type="button"
+              aria-label="Anderen Satz laden"
+              title="Anderen Satz laden"
+            >
+              <span class="button-icon" aria-hidden="true">↺</span>
+              <span class="button-label">Neuer Satz</span>
+            </button>
+          </div>
+
+          <div id="reveal-card" class="reveal-panel">
+            <div class="reveal-head">
+              <div>
+                <p class="label">Prüfen</p>
+                <p class="reveal-title">Lösung vergleichen</p>
+              </div>
+              <button
+                id="reveal-button"
+                class="text-action"
+                type="button"
+                aria-label="Lösung deutlich zeigen"
+                title="Lösung deutlich zeigen"
+              >
+                Lösung zeigen
+              </button>
+            </div>
+            <p id="revealed-text" class="revealed-text is-blurred"></p>
+          </div>
+        </article>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>

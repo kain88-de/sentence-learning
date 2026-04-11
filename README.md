@@ -17,9 +17,10 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 ## Project Structure
 
 - [site/](/home/max/code/learning/site) - publishable static site root
-- [site/app/](/home/max/code/learning/site/app) - the app UI
-- [site/shared/](/home/max/code/learning/site/shared) - shared TTS, data, and storage logic
-- [site/audio/](/home/max/code/learning/site/audio) - built-in audio files
+- [site/index.html](/home/max/code/learning/site/index.html) - practice page entry point
+- [site/manage.html](/home/max/code/learning/site/manage.html) - manage page
+- [site/lib/](/home/max/code/learning/site/lib) - browser-side modules
+- [site/assets/](/home/max/code/learning/site/assets) - built-in sentence source files and generated audio output
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
 
 ## Run Locally
@@ -42,7 +43,7 @@ Then open:
 http://localhost:8000/
 ```
 
-The site root [site/index.html](/home/max/code/learning/site/index.html) is a thin wrapper that redirects `/` to the real app in [site/app/](/home/max/code/learning/site/app).
+The site root [site/index.html](/home/max/code/learning/site/index.html) is the practice page entry point.
 
 ## Development
 
@@ -61,7 +62,7 @@ just serve
 Run checks:
 
 ```bash
-npx biome check site/app site/shared
+npx biome check site/*.js site/*.html site/*.css site/lib
 node scripts/check-static-site.mjs
 ```
 
@@ -76,12 +77,9 @@ bun run check
 - Use a local server for testing so IndexedDB behaves consistently.
 - On first model-based playback, the browser will download the German model files into its cache.
 - Built-in audio is used when the playback speed matches the pre-generated audio speed.
+- The built-in WAV files are generated during GitHub Pages deploy and can also be generated locally with `bun run build:audio`.
 - GitHub Pages publishes [site/](/home/max/code/learning/site), not the whole repository.
-- The actual app entry point is [site/app/index.html](/home/max/code/learning/site/app/index.html).
-
-## TODO
-
-- Let that workflow build and commit or publish the pre-generated audio assets as part of deployment.
+- The practice page entry point is [site/index.html](/home/max/code/learning/site/index.html).
 
 ## License
 
