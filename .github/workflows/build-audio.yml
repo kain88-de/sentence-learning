@@ -8,7 +8,6 @@ on:
       - main
     paths:
       - "data/builtin-sentences.txt"
-      - "data/builtin-words.txt"
       - "shared/data.js"
       - "scripts/pregenerate-audio.mjs"
       - "package.json"

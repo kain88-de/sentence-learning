@@ -6,7 +6,6 @@ import { env, pipeline } from "@huggingface/transformers";
 import {
   PREBUILT_AUDIO_SPEED,
   loadBuiltinSentencesForBuild,
-  loadBuiltinWordsForBuild,
 } from "../shared/data.js";
 
 const repoRoot = process.cwd();
@@ -56,8 +55,7 @@ function encodeWav(float32Audio, sampleRate) {
 await mkdir(audioDir, { recursive: true });
 
 const builtInSentences = await loadBuiltinSentencesForBuild(readFile);
-const builtInWords = await loadBuiltinWordsForBuild(readFile);
-const builtInEntries = [...builtInSentences, ...builtInWords];
+const builtInEntries = [...builtInSentences];
 const expectedFileNames = new Set(builtInEntries.map((entry) => `${entry.id}.wav`));
 
 console.log(`Preparing built-in audio at speed ${PREBUILT_AUDIO_SPEED} with model ${modelId}`);
