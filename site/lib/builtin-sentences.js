@@ -20,11 +20,6 @@ export async function loadBuiltinSentences() {
   return normalizeBuiltinSentenceEntries(await response.json());
 }
 
-export async function loadBuiltinSentencesForBuild(readFile) {
-  const content = await readFile(BUILTIN_SENTENCES_FILE, "utf8");
-  return normalizeBuiltinSentenceEntries(JSON.parse(content));
-}
-
 export function normalizeSentence(text) {
   return text.replace(/\s+/g, " ").trim();
 }

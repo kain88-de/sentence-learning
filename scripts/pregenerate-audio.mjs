@@ -3,16 +3,31 @@ import path from "node:path";
 
 import { env, pipeline } from "@huggingface/transformers";
 
-import {
-  PREBUILT_AUDIO_SPEED,
-  loadBuiltinSentencesForBuild,
-} from "../site/lib/builtin-sentences.js";
+import { PREBUILT_AUDIO_SPEED, normalizeSentence } from "../site/lib/builtin-sentences.js";
 
 const repoRoot = process.cwd();
+const sentencesPath = path.join(repoRoot, "sentences.txt");
+const builtInSentencesPath = path.join(repoRoot, "site/assets/data/builtin-sentences.json");
 const audioDir = path.join(repoRoot, "site/assets/audio");
 const modelId = "Xenova/mms-tts-deu";
 
 env.allowRemoteModels = true;
+
+function parseSentenceLines(content) {
+  return content
+    .split(/\r?\n/)
+    .map((line) => normalizeSentence(line))
+    .filter((line) => line && !line.startsWith("#"))
+    .map((text, index) => ({
+      id: `builtin-${index + 1}`,
+      text,
+      audioSrc: `../assets/audio/builtin-${index + 1}.wav`,
+    }));
+}
+
+function outputFileNameFor(entry) {
+  return path.basename(entry.audioSrc);
+}
 
 function encodeWav(float32Audio, sampleRate) {
   const channelCount = 1;
@@ -54,18 +69,19 @@ function encodeWav(float32Audio, sampleRate) {
 
 await mkdir(audioDir, { recursive: true });
 
-const builtInSentences = await loadBuiltinSentencesForBuild(readFile);
+const sentenceSource = await readFile(sentencesPath, "utf8");
+const builtInSentences = parseSentenceLines(sentenceSource);
 const builtInEntries = [...builtInSentences];
-const expectedFileNames = new Set(
-  builtInEntries.map((entry) => path.basename(new URL(entry.audioSrc).pathname)),
-);
+const expectedFileNames = new Set(builtInEntries.map(outputFileNameFor));
+
+await writeFile(builtInSentencesPath, `${JSON.stringify(builtInEntries, null, 2)}\n`);
 
 console.log(`Preparing built-in audio at speed ${PREBUILT_AUDIO_SPEED} with model ${modelId}`);
 
 const synthesizer = await pipeline("text-to-speech", modelId);
 
 for (const entry of builtInEntries) {
-  const outputFileName = path.basename(new URL(entry.audioSrc).pathname);
+  const outputFileName = outputFileNameFor(entry);
   const outputPath = path.join(audioDir, outputFileName);
 
   console.log(`generate ${entry.id}`);

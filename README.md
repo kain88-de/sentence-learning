@@ -21,6 +21,7 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 - [site/manage.html](/home/max/code/learning/site/manage.html) - manage page
 - [site/lib/](/home/max/code/learning/site/lib) - browser-side modules
 - [site/assets/](/home/max/code/learning/site/assets) - built-in sentence manifest and generated audio output
+- [sentences.txt](/home/max/code/learning/sentences.txt:1) - source of truth for built-in sentences
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
 
 ## Run Locally
@@ -77,6 +78,7 @@ bun run check
 - Use a local server for testing so IndexedDB behaves consistently.
 - On first model-based playback, the browser will download the German model files into its cache.
 - Built-in audio is used when the playback speed matches the pre-generated audio speed.
+- The built-in sentence manifest in `site/assets/data/builtin-sentences.json` is generated from `sentences.txt`.
 - The built-in WAV files are generated during GitHub Pages deploy and can also be generated locally with `bun run build:audio`.
 - GitHub Pages publishes [site/](/home/max/code/learning/site), not the whole repository.
 - The practice page entry point is [site/index.html](/home/max/code/learning/site/index.html).
