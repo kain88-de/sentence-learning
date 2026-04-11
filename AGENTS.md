@@ -3,15 +3,17 @@
 ## Purpose
 
 This repository contains a static browser-based German dictation practice app for children.
-The app lives in `app/` and depends on shared browser-side modules in `shared/`.
+The publishable site lives in `site/`.
+The app UI lives in `site/app/` and depends on shared browser-side modules in `site/shared/`.
 
 ## Repo Map
 
-- `index.html`: root wrapper that redirects `/` to `app/`
-- `app/`: UI, page structure, and app behavior
-- `shared/`: text-to-speech playback, sentence data loading, and IndexedDB helpers
-- `audio/`: pre-generated built-in WAV files for sample sentences
-- `data/`: built-in sentence source text
+- `site/`: static site root published to GitHub Pages
+- `site/index.html`: wrapper that redirects `/` to `app/`
+- `site/app/`: UI, page structure, and app behavior
+- `site/shared/`: text-to-speech playback, sentence data loading, and IndexedDB helpers
+- `site/audio/`: pre-generated built-in WAV files for sample sentences
+- `site/data/`: built-in sentence source text
 - `scripts/`: static checks and audio generation helpers
 
 ## Local Development
@@ -25,12 +27,12 @@ just serve
 Fallback:
 
 ```bash
-python3 -m http.server 8000
+python3 -m http.server 8000 --directory site
 ```
 
 Open `http://localhost:8000/`, which redirects to `app/`.
 
-The root `index.html` is intentionally just a wrapper. Keep that setup unless the project explicitly adopts a build/deploy step that moves the app back to `/`.
+`site/index.html` is intentionally just a wrapper. Keep that setup unless the project explicitly adopts a different app entry layout.
 
 ## Common Commands
 
@@ -67,7 +69,7 @@ bun run build:audio
 ## Project Constraints
 
 - Keep the app fully static. Do not introduce a server dependency unless explicitly requested.
-- Built-in audio in `audio/` must stay aligned with `PREBUILT_AUDIO_SPEED` in `shared/data.js`.
+- Built-in audio in `site/audio/` must stay aligned with `PREBUILT_AUDIO_SPEED` in `site/shared/data.js`.
 - If you change built-in sentence text or the prebuilt speed, regenerate the WAV files.
 - IndexedDB behavior should be tested through a local server, not `file://`.
 - Preserve the current lightweight structure unless there is a clear reason to add framework tooling.
@@ -84,12 +86,12 @@ bun run build:audio
 ## Frontend Architecture
 
 - Keep page-level modules thin:
-  - `app/app.js` owns the practice page only
-  - `app/manage.js` owns the manage page only
-- Put cross-page browser modules in `shared/`, not `app/`.
+  - `site/app/app.js` owns the practice page only
+  - `site/app/manage.js` owns the manage page only
+- Put cross-page browser modules in `site/shared/`, not `site/app/`.
 - Split responsibilities by concern, not by feature label:
-  - sentence loading and sentence helpers in `shared/`
-  - model download and synthesis worker orchestration in `shared/model-tts.js`
+  - sentence loading and sentence helpers in `site/shared/`
+  - model download and synthesis worker orchestration in `site/shared/model-tts.js`
   - playback transport and playback state in a separate playback module
 - Do not let UI code depend on human-readable status text such as `"Wiedergabe beendet."` for logic.
 - UI state decisions must be based on stable fields like:
@@ -102,7 +104,7 @@ bun run build:audio
   - audio playback
   - sentence persistence
   - page rendering
-- If a helper is shared by both pages, place it in `shared/` and give it a concern-based name.
+- If a helper is shared by both pages, place it in `site/shared/` and give it a concern-based name.
 - Prefer normal page navigation over hiding whole screens behind client-side tab state when the screens have different responsibilities.
 
 ## Current Default
@@ -112,5 +114,4 @@ bun run build:audio
 
 ## Future Work
 
-- A GitHub Actions publish flow for GitHub Pages is a good next step.
 - That workflow can also generate built-in audio during deployment if the project chooses not to store all generated assets manually.

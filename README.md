@@ -16,9 +16,10 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 
 ## Project Structure
 
-- [app/](/home/max/code/learning/app) - the app UI
-- [shared/](/home/max/code/learning/shared) - shared TTS, data, and storage logic
-- [audio/](/home/max/code/learning/audio) - built-in audio files
+- [site/](/home/max/code/learning/site) - publishable static site root
+- [site/app/](/home/max/code/learning/site/app) - the app UI
+- [site/shared/](/home/max/code/learning/site/shared) - shared TTS, data, and storage logic
+- [site/audio/](/home/max/code/learning/site/audio) - built-in audio files
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
 
 ## Run Locally
@@ -32,7 +33,7 @@ just serve
 Fallback if `just` is not installed:
 
 ```bash
-python3 -m http.server 8000
+python3 -m http.server 8000 --directory site
 ```
 
 Then open:
@@ -41,7 +42,7 @@ Then open:
 http://localhost:8000/
 ```
 
-The root [index.html](/home/max/code/learning/index.html) is a thin wrapper that redirects `/` to the real app in [app/](/home/max/code/learning/app). That keeps the current static hosting setup simple and avoids adding a build step for now.
+The site root [site/index.html](/home/max/code/learning/site/index.html) is a thin wrapper that redirects `/` to the real app in [site/app/](/home/max/code/learning/site/app).
 
 ## Development
 
@@ -60,7 +61,7 @@ just serve
 Run checks:
 
 ```bash
-npx biome check app shared
+npx biome check site/app site/shared
 node scripts/check-static-site.mjs
 ```
 
@@ -75,11 +76,11 @@ bun run check
 - Use a local server for testing so IndexedDB behaves consistently.
 - On first model-based playback, the browser will download the German model files into its cache.
 - Built-in audio is used when the playback speed matches the pre-generated audio speed.
-- The repo root is a redirect wrapper; the actual app entry point is [app/index.html](/home/max/code/learning/app/index.html).
+- GitHub Pages publishes [site/](/home/max/code/learning/site), not the whole repository.
+- The actual app entry point is [site/app/index.html](/home/max/code/learning/site/app/index.html).
 
 ## TODO
 
-- Add a GitHub Actions workflow to publish the static site to GitHub Pages.
 - Let that workflow build and commit or publish the pre-generated audio assets as part of deployment.
 
 ## License
