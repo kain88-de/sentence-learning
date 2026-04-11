@@ -3,8 +3,8 @@ import path from "node:path";
 
 const repoRoot = process.cwd();
 const siteRoot = path.join(repoRoot, "site");
-const htmlFiles = ["index.html", "app/index.html", "app/manage.html"];
-const cssFiles = ["app/style.css"];
+const htmlFiles = ["index.html", "manage.html"];
+const cssFiles = ["style.css"];
 const errors = [];
 
 function addError(message) {
@@ -58,28 +58,18 @@ async function checkCssFile(relativePath) {
   }
 }
 
-async function checkAppDirectories() {
+async function checkSiteFiles() {
   const entries = await readdir(siteRoot, { withFileTypes: true });
-  const appDirs = entries
-    .filter((entry) => entry.isDirectory() && entry.name === "app")
-    .map((entry) => entry.name)
-    .sort();
+  const entryNames = new Set(entries.map((entry) => entry.name));
 
-  if (appDirs.length !== 1 || appDirs[0] !== "app") {
-    addError(`expected only app directory, found ${appDirs.join(", ") || "none"}.`);
-  }
-
-  for (const appDir of appDirs) {
-    for (const requiredFile of ["index.html", "manage.html", "style.css", "app.js", "manage.js"]) {
-      const relativePath = path.join(appDir, requiredFile);
-      if (!(await fileExists(relativePath))) {
-        addError(`${appDir}: missing ${requiredFile}.`);
-      }
+  for (const requiredFile of ["index.html", "manage.html", "style.css", "app.js", "manage.js"]) {
+    if (!entryNames.has(requiredFile)) {
+      addError(`site root: missing ${requiredFile}.`);
     }
   }
 }
 
-await checkAppDirectories();
+await checkSiteFiles();
 await Promise.all(htmlFiles.map(checkHtmlFile));
 await Promise.all(cssFiles.map(checkCssFile));
 

@@ -4,13 +4,16 @@
 
 This repository contains a static browser-based German dictation practice app for children.
 The publishable site lives in `site/`.
-The app UI lives in `site/app/` and depends on shared browser-side modules in `site/shared/`.
+The page entry points live in `site/` and depend on shared browser-side modules in `site/shared/`.
 
 ## Repo Map
 
 - `site/`: static site root published to GitHub Pages
-- `site/index.html`: wrapper that redirects `/` to `app/`
-- `site/app/`: UI, page structure, and app behavior
+- `site/index.html`: practice page entry point
+- `site/manage.html`: manage page entry point
+- `site/app.js`: practice page behavior
+- `site/manage.js`: manage page behavior
+- `site/style.css`: shared page styles
 - `site/shared/`: text-to-speech playback, sentence data loading, and IndexedDB helpers
 - `site/audio/`: pre-generated built-in WAV files for sample sentences
 - `site/data/`: built-in sentence source text
@@ -30,9 +33,7 @@ Fallback:
 python3 -m http.server 8000 --directory site
 ```
 
-Open `http://localhost:8000/`, which redirects to `app/`.
-
-`site/index.html` is intentionally just a wrapper. Keep that setup unless the project explicitly adopts a different app entry layout.
+Open `http://localhost:8000/`.
 
 ## Common Commands
 
@@ -86,9 +87,9 @@ bun run build:audio
 ## Frontend Architecture
 
 - Keep page-level modules thin:
-  - `site/app/app.js` owns the practice page only
-  - `site/app/manage.js` owns the manage page only
-- Put cross-page browser modules in `site/shared/`, not `site/app/`.
+  - `site/app.js` owns the practice page only
+  - `site/manage.js` owns the manage page only
+- Put cross-page browser modules in `site/shared/`, not the page entry modules.
 - Split responsibilities by concern, not by feature label:
   - sentence loading and sentence helpers in `site/shared/`
   - model download and synthesis worker orchestration in `site/shared/model-tts.js`

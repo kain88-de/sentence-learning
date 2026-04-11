@@ -3,7 +3,7 @@ import path from "node:path";
 
 const repoRoot = process.cwd();
 const siteRoot = path.join(repoRoot, "site");
-const entryPoints = ["app/app.js", "app/manage.js"].map((entryPoint) =>
+const entryPoints = ["app.js", "manage.js"].map((entryPoint) =>
   path.join(siteRoot, entryPoint),
 );
 

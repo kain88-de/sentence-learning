@@ -1,7 +1,7 @@
-import { pausePlayback, resumePlayback } from "../shared/audio-playback.js";
-import { getPlaybackSnapshot, subscribePlaybackState } from "../shared/playback-state.js";
-import { playSentence } from "../shared/sentence-audio.js";
-import { allSentences, loadSentenceCollections } from "../shared/sentence-repository.js";
+import { pausePlayback, resumePlayback } from "./shared/audio-playback.js";
+import { getPlaybackSnapshot, subscribePlaybackState } from "./shared/playback-state.js";
+import { playSentence } from "./shared/sentence-audio.js";
+import { allSentences, loadSentenceCollections } from "./shared/sentence-repository.js";
 
 const playButton = document.querySelector("#play-button");
 const randomButton = document.querySelector("#random-button");

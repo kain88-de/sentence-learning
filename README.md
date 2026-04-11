@@ -17,7 +17,8 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 ## Project Structure
 
 - [site/](/home/max/code/learning/site) - publishable static site root
-- [site/app/](/home/max/code/learning/site/app) - the app UI
+- [site/index.html](/home/max/code/learning/site/index.html) - practice page entry point
+- [site/manage.html](/home/max/code/learning/site/manage.html) - manage page
 - [site/shared/](/home/max/code/learning/site/shared) - shared TTS, data, and storage logic
 - [site/audio/](/home/max/code/learning/site/audio) - built-in audio files
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
@@ -42,7 +43,7 @@ Then open:
 http://localhost:8000/
 ```
 
-The site root [site/index.html](/home/max/code/learning/site/index.html) is a thin wrapper that redirects `/` to the real app in [site/app/](/home/max/code/learning/site/app).
+The site root [site/index.html](/home/max/code/learning/site/index.html) is the practice page entry point.
 
 ## Development
 
@@ -61,7 +62,7 @@ just serve
 Run checks:
 
 ```bash
-npx biome check site/app site/shared
+npx biome check site/*.js site/*.html site/*.css site/shared
 node scripts/check-static-site.mjs
 ```
 
@@ -77,7 +78,7 @@ bun run check
 - On first model-based playback, the browser will download the German model files into its cache.
 - Built-in audio is used when the playback speed matches the pre-generated audio speed.
 - GitHub Pages publishes [site/](/home/max/code/learning/site), not the whole repository.
-- The actual app entry point is [site/app/index.html](/home/max/code/learning/site/app/index.html).
+- The practice page entry point is [site/index.html](/home/max/code/learning/site/index.html).
 
 ## TODO
 

@@ -1,18 +1,18 @@
-import { escapeHtml } from "../shared/html.js";
-import { getModelStatusSnapshot, subscribeModelStatus } from "../shared/model-status.js";
-import { preloadModel } from "../shared/model-tts.js";
+import { escapeHtml } from "./shared/html.js";
+import { getModelStatusSnapshot, subscribeModelStatus } from "./shared/model-status.js";
+import { preloadModel } from "./shared/model-tts.js";
 import {
   deleteSentenceAudio,
   ensureUserSentenceAudio,
   getUserAudioUsageText,
   playSentence,
-} from "../shared/sentence-audio.js";
+} from "./shared/sentence-audio.js";
 import {
   allSentences,
   createUserSentence,
   loadSentenceCollections,
   removeUserSentence,
-} from "../shared/sentence-repository.js";
+} from "./shared/sentence-repository.js";
 
 const prepareButton = document.querySelector("#prepare-button");
 const modelSpinner = document.querySelector("#model-spinner");
