@@ -20,7 +20,7 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 - [site/index.html](/home/max/code/learning/site/index.html) - practice page entry point
 - [site/manage.html](/home/max/code/learning/site/manage.html) - manage page
 - [site/lib/](/home/max/code/learning/site/lib) - browser-side modules
-- [site/assets/](/home/max/code/learning/site/assets) - built-in audio and sentence source files
+- [site/assets/](/home/max/code/learning/site/assets) - built-in sentence source files and generated audio output
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
 
 ## Run Locally
@@ -77,12 +77,9 @@ bun run check
 - Use a local server for testing so IndexedDB behaves consistently.
 - On first model-based playback, the browser will download the German model files into its cache.
 - Built-in audio is used when the playback speed matches the pre-generated audio speed.
+- The built-in WAV files are generated during GitHub Pages deploy and can also be generated locally with `bun run build:audio`.
 - GitHub Pages publishes [site/](/home/max/code/learning/site), not the whole repository.
 - The practice page entry point is [site/index.html](/home/max/code/learning/site/index.html).
-
-## TODO
-
-- Let that workflow build and commit or publish the pre-generated audio assets as part of deployment.
 
 ## License
 

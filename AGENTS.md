@@ -15,7 +15,7 @@ The page entry points live in `site/` and depend on browser-side modules in `sit
 - `site/manage.js`: manage page behavior
 - `site/style.css`: shared page styles
 - `site/lib/`: text-to-speech playback, sentence loading, and IndexedDB helpers
-- `site/assets/audio/`: pre-generated built-in WAV files for sample sentences
+- `site/assets/audio/`: generated built-in WAV files for sample sentences
 - `site/assets/data/`: built-in sentence source text
 - `scripts/`: static checks and audio generation helpers
 
@@ -71,6 +71,7 @@ bun run build:audio
 
 - Keep the app fully static. Do not introduce a server dependency unless explicitly requested.
 - Built-in audio in `site/assets/audio/` must stay aligned with `PREBUILT_AUDIO_SPEED` in `site/lib/builtin-sentences.js`.
+- The built-in WAV files are generated during GitHub Pages deploy and may not be present in a fresh checkout until `bun run build:audio` is run.
 - If you change built-in sentence text or the prebuilt speed, regenerate the WAV files.
 - IndexedDB behavior should be tested through a local server, not `file://`.
 - Preserve the current lightweight structure unless there is a clear reason to add framework tooling.
@@ -112,8 +113,8 @@ bun run build:audio
 ## Current Default
 
 - Default reading speed is `0.55x`.
-- The default-speed built-in audio files were generated to match that value.
+- The default-speed built-in audio files should be generated to match that value.
 
 ## Future Work
 
-- That workflow can also generate built-in audio during deployment if the project chooses not to store all generated assets manually.
+- If audio generation ever becomes too slow for deploy, consider caching or publishing the generated assets separately.
