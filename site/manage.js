@@ -6,13 +6,13 @@ import {
   ensureUserSentenceAudio,
   getUserAudioUsageText,
   playSentence,
-} from "./lib/sentence-audio.js";
+} from "./lib/sentence-playback.js";
 import {
   allSentences,
   createUserSentence,
   loadSentenceCollections,
   removeUserSentence,
-} from "./lib/sentence-repository.js";
+} from "./lib/sentences.js";
 
 const prepareButton = document.querySelector("#prepare-button");
 const modelSpinner = document.querySelector("#model-spinner");

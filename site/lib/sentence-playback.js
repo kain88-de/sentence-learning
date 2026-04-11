@@ -5,7 +5,7 @@ import {
   listUserAudioRecords,
   removeUserAudioRecord,
   saveUserAudioRecord,
-} from "./user-audio-repository.js";
+} from "./user-audio.js";
 
 export function audioBytesText(records) {
   let bytes = 0;

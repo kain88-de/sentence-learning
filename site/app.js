@@ -1,7 +1,7 @@
 import { pausePlayback, resumePlayback } from "./lib/audio-playback.js";
 import { getPlaybackSnapshot, subscribePlaybackState } from "./lib/playback-state.js";
-import { playSentence } from "./lib/sentence-audio.js";
-import { allSentences, loadSentenceCollections } from "./lib/sentence-repository.js";
+import { playSentence } from "./lib/sentence-playback.js";
+import { allSentences, loadSentenceCollections } from "./lib/sentences.js";
 
 const playButton = document.querySelector("#play-button");
 const randomButton = document.querySelector("#random-button");

@@ -6,7 +6,7 @@ import { env, pipeline } from "@huggingface/transformers";
 import {
   PREBUILT_AUDIO_SPEED,
   loadBuiltinSentencesForBuild,
-} from "../site/lib/data.js";
+} from "../site/lib/builtin-sentences.js";
 
 const repoRoot = process.cwd();
 const audioDir = path.join(repoRoot, "site/assets/audio");
