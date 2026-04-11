@@ -16,7 +16,7 @@ The page entry points live in `site/` and depend on browser-side modules in `sit
 - `site/style.css`: shared page styles
 - `site/lib/`: text-to-speech playback, sentence loading, and IndexedDB helpers
 - `site/assets/audio/`: generated built-in WAV files for sample sentences
-- `site/assets/data/`: built-in sentence source text
+- `site/assets/data/`: built-in sentence manifest
 - `scripts/`: static checks and audio generation helpers
 
 ## Local Development

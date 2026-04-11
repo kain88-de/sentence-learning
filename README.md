@@ -20,7 +20,7 @@ A simple browser-based writing practice app for children. The app plays slow Ger
 - [site/index.html](/home/max/code/learning/site/index.html) - practice page entry point
 - [site/manage.html](/home/max/code/learning/site/manage.html) - manage page
 - [site/lib/](/home/max/code/learning/site/lib) - browser-side modules
-- [site/assets/](/home/max/code/learning/site/assets) - built-in sentence source files and generated audio output
+- [site/assets/](/home/max/code/learning/site/assets) - built-in sentence manifest and generated audio output
 - [scripts/](/home/max/code/learning/scripts) - static checks and audio generation helpers
 
 ## Run Locally

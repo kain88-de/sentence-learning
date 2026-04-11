@@ -56,14 +56,17 @@ await mkdir(audioDir, { recursive: true });
 
 const builtInSentences = await loadBuiltinSentencesForBuild(readFile);
 const builtInEntries = [...builtInSentences];
-const expectedFileNames = new Set(builtInEntries.map((entry) => `${entry.id}.wav`));
+const expectedFileNames = new Set(
+  builtInEntries.map((entry) => path.basename(new URL(entry.audioSrc).pathname)),
+);
 
 console.log(`Preparing built-in audio at speed ${PREBUILT_AUDIO_SPEED} with model ${modelId}`);
 
 const synthesizer = await pipeline("text-to-speech", modelId);
 
 for (const entry of builtInEntries) {
-  const outputPath = path.join(audioDir, `${entry.id}.wav`);
+  const outputFileName = path.basename(new URL(entry.audioSrc).pathname);
+  const outputPath = path.join(audioDir, outputFileName);
 
   console.log(`generate ${entry.id}`);
   const output = await synthesizer(entry.text, { speed: PREBUILT_AUDIO_SPEED });
